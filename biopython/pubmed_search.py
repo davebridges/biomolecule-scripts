@@ -1,7 +1,8 @@
-"""This is a module to retrieve and parse pubmed articles which match a keyword"""
+"""This is a module to retrieve and work with and display pubmed articles which match a keyword"""
 
 from Bio import Entrez
 Entrez.email = "davebrid@umich.edu"
+query = "Bridges D[AUTH] AND Saltiel AR[AUTH]" #sets the query; should make this an input field
 
 def get_article_abstract(article_id):
     """Takes an article_id and prints out the abstract of that article 
@@ -30,40 +31,44 @@ def get_article_abstract(article_id):
     article = article_handle.read()
     print article
 
-
-handle = Entrez.einfo(db="pubmed") # gets information about the Entrez pubmed database
-record = Entrez.read(handle) #parses pubmed information
-
-total_records = record["DbInfo"]["Count"] #obtains a count of total records in the PubMed database
-last_updated = record["DbInfo"]["LastUpdate"] #obtains the most recent update to the PubMed database
-
-query = "Bridges D[AUTH] AND Saltiel AR[AUTH]" #sets the query; should make this an input field
-
-"""Takes an author's name and performs a pubmed search for articles by that author
-
->>>query = "Saltiel AR"
->>>handle = Entrez.esearch(db="pubmed", term=query)
->>>record = Entrez.read(handle)
->>>record["RetMax"]
-'20'
+def pubmed_statistics():
+    """Retrieves general information about the PubMed database"""
+    handle = Entrez.einfo(db="pubmed") # gets information about the Entrez pubmed database
+    record = Entrez.read(handle) #parses pubmed information
+    total_records = record["DbInfo"]["Count"] #obtains a count of total records in the PubMed database
+    last_updated = record["DbInfo"]["LastUpdate"] #obtains the most recent update to the PubMed database
 
 
-"""
-handle = Entrez.esearch(db="pubmed", term=query) #searches PubMed for the specified query
-record = Entrez.read(handle) #parses the entrez search results
-article = record["IdList"][0] #gets the first article in the list
-article_handle = Entrez.efetch(db="pubmed", id=article, rettype="medline", retmode="xml") #retrieves the first article as xml
-filename = "%s.xml" % article #sets filename for output file to be the gi number.xml
-outhandle = open(filename, "w") #generates and opens the output file
-outhandle.write(article_handle.read()) #writes article to output file 
-outhandle.close()
-article_handle.close()
-print "Saved as %s" % filename  #prints a completion output
 
-cited_articles = Entrez.read(Entrez.elink(dbfrom="pubmed", db="pmc", LinkName="pubmed_pmc_refs", from_uid=article)) #gets pubmed central articles which cite the article
-cited_article_ids = [link["Id"] for link in cited_articles[0]["LinkSetDb"][0]["Link"]]
-cited_pmid = Entrez.read(Entrez.elink(dbfrom="pmc", db="pubmed", LinkName="pmc_pubmed", from_uid=",".join(cited_article_ids)))
-if cited_pmid:
-    print "This article was cited by:\n %s" % get_article_abstract(cited_pmid[0]["IdList"][0])
-else:
-    print "This article has not been cited in PubMed Central"
+def author_search(query):
+    """Takes an author's name and performs a pubmed search for articles by that author
+
+    >>>query = "Saltiel AR"
+    >>>handle = Entrez.esearch(db="pubmed", term=query)
+    >>>record = Entrez.read(handle)
+    >>>record["RetMax"]
+    '20'
+    
+    
+    """
+    handle = Entrez.esearch(db="pubmed", term=query) #searches PubMed for the specified query
+    record = Entrez.read(handle) #parses the entrez search results
+    article_id = record["IdList"][0] #gets the first article in the list
+    article_handle = Entrez.efetch(db="pubmed", id=article_id, rettype="medline", retmode="xml") #retrieves the first article as xml
+    filename = "%s.xml" % article #sets filename for output file to be the gi number.xml
+    outhandle = open(filename, "w") #generates and opens the output file
+    outhandle.write(article_handle.read()) #writes article to output file 
+    outhandle.close()
+    article_handle.close()
+    print "Saved as %s" % filename  #prints a completion output
+
+
+def cited_articles(article_id):
+    """retrieves all articles indexed by PubMedCentral which cite a given article"""
+    cited_articles = Entrez.read(Entrez.elink(dbfrom="pubmed", db="pmc", LinkName="pubmed_pmc_refs", from_uid=article_id)) #gets pubmed central articles which cite the article
+    cited_article_ids = [link["Id"] for link in cited_articles[0]["LinkSetDb"][0]["Link"]]
+    cited_pmid = Entrez.read(Entrez.elink(dbfrom="pmc", db="pubmed", LinkName="pmc_pubmed", from_uid=",".join(cited_article_ids)))
+    if cited_pmid:
+        print "This article was cited by:\n %s" % get_article_abstract(cited_pmid[0]["IdList"][0])
+    else:
+        print "This article has not been cited in PubMed Central"
