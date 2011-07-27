@@ -1,0 +1,80 @@
+\documentclass{article}
+
+\usepackage{fullpage}
+\usepackage[colorlinks=true]{hyperref}
+\usepackage[tableposition=top]{caption}
+\usepackage[utf8]{inputenc}
+
+\begin{document}
+
+\title{Sample Analysis of 2-Deoxyglucose Uptake Experiment}
+\author{Dave Bridges}
+\date{July 9, 2008}
+\maketitle
+
+\section*{Experiment Summary}
+Summarise experimental details here.
+<<data analysis>>=
+setwd('~/Analysis') #set the directory in which data files are saved
+data_file <- "data.csv" #need a data file with columns Knockdown (can change if other manipulation is used), Treatment, A595 (Absorbance in mAU from a bradford assay) and CPM.  Change name if needed 
+data <- read.csv(data_file)
+protein.std.slope <- 0.0505 #the slope of a BSA standard curve
+protein.assay.volume <- 20 #the volume of lysate used for bradford assay
+data$Protein <- data$A595/protein.std.slope/protein.assay.volume/1000 #calculates total protein amount
+data$CPM.norm <- data$CPM/data$Protein*500/400 #normalizes counts to total protein (and 400/500uL of assay volume)
+CPM.total.average <- mean(51599) #total counts of 5 uL of hot 2-dg solution
+total.pmoles <- 200E-6*5E-6*1E12 #calculates total pmoles in 5 uL
+CPM.pmoles <- CPM.total.average/total.pmoles #CPM/pmole conversion
+data$pmoles.mg <- data$CPM.norm/CPM.pmoles/5 #converts CPM to pmoles
+library(reshape)
+summary <- cast(data, Knockdown~Treatment, value="pmoles.mg", fun.aggregate=mean) #generates summary means
+summary <- summary[order(summary$Knockdown, decreasing=TRUE), ]
+error.sd <- cast(data, Knockdown~Treatment, value="pmoles.mg", fun.aggregate=sd) #generates summary sd
+error.se <- as.matrix(error.sd)/sqrt(3) #generates standard error (presumes 3 replicates)
+data.anova <- aov(pmoles.mg~Treatment*Knockdown, data=data) #multiple factor anova
+data.tukey <- TukeyHSD(data.anova) #will generate pairwise t-tests
+@
+<<label=data-tables,echo=FALSE,results=tex>>=
+library(xtable)
+print(xtable(data, caption = "All Data", label = "tab:one"))
+print(xtable(summary, caption = "Averaged Data", label = "tab:two"))
+@
+
+
+\section*{Summary}
+Write a brief summary of results.
+
+
+<<label=stat-tables,echo=FALSE,results=tex>>=
+print(xtable(data.tukey$`Treatment:Knockdown`, caption = "Tukey Test p-values", label = "tab:two"))
+@
+
+<<label=barplot, include=FALSE, echo=FALSE>>=
+plot <- barplot(as.matrix(summary),
+        beside = T,
+        ylim = c(0,500),
+        ylab="Glucose Uptake (pmoles/mg/min)")
+superpose.eb <- function (x, y, ebl, ebu = ebl, length = 0.08, ...)
+  arrows(x, y + ebu, x, y - ebl, angle = 90, code = 3,
+  length = length, ...)
+superpose.eb(plot, as.matrix(summary), as.matrix(error.se))
+legend("topleft",as.character(summary$Knockdown), fill=grey.colors(3), bty="n")
+@
+
+\begin{figure}
+\begin{center}
+<<label=fig1,fig=TRUE,echo=FALSE>>=
+<<barplot>>
+@
+\end{center}
+\caption{Write a relevant figure caption.}
+\label{fig:one}
+\end{figure}
+
+\section*{Session Information}
+<<sessionInfo, results=tex, echo=F>>=
+toLatex(sessionInfo())
+@
+
+
+\end{document}
