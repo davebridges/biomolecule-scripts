@@ -1,0 +1,127 @@
+\documentclass{article}
+
+\usepackage{fullpage}
+\usepackage[colorlinks=true]{hyperref}
+\usepackage[tableposition=top]{caption}
+\usepackage[utf8]{inputenc}
+
+\begin{document}
+
+\title{Effects of Appl1 Knockdown on Glucose Uptake}
+\author{Dave Bridges}
+\date{November 18, 2011}
+\maketitle
+
+<<data-input, echo=TRUE>>=
+setwd('some location')
+data_file <- "raw_data.csv" #columns Volume, Glucose, A505
+std_curve_file <- "std_curve.csv" #columns Treatment, Weight, A505
+data <- read.csv(data_file)
+std_curve <- read.csv(std_curve_file)
+@
+
+<<std-curve-analysis, echo=TRUE>>=
+glucose.mwt <- 180.15588 #g/mol not used unless wanting to convert to molar
+std_fit <- lm(Glucose~A505 -1, data=std_curve) #force through intercept
+summary(std_fit)
+@
+
+<<label=std-curve, include=FALSE, echo=FALSE>>=
+plot(Glucose~A505, data=std_curve,
+     ylab="Glucose (ug)")
+abline(std_fit)
+@
+
+\begin{figure}
+\begin{center}
+<<label=std-curve,fig=TRUE,echo=FALSE>>=
+<<std-curve>>
+@
+\end{center}
+\caption{Standard Curve for Glucose Assay.}
+\label{fig:one}
+\end{figure}
+
+
+<<data-analysis, echo=TRUE>>=
+data$Glycogen <- data$A505*coefficients(std_fit) #in ug/assay
+assay.volume <- 100 #uL
+data$total.glycogen <- data$Glycogen*200/assay.volume #in ug
+data$normalized.glycogen <- data$total.glycogen/data$Weight*1000 # in mg/g
+calculated.data <- data.frame(Mouse = data$Mouse, 
+                              Treatment = data$Treatment,
+                              Blood.Glucose = data$Glucose,
+                              Glycogen = data$normalized.glycogen,
+                              check.rows=F)
+@
+
+<<label=data-tables,echo=FALSE,results=tex>>=
+require(xtable)
+print(xtable(calculated.data[order(calculated.data$Treatment),], caption = "Calculated Data", label = "tab:one"), include.rownames=F)
+@
+
+<<data-summary, echo=TRUE>>=
+require(reshape)
+summary <- as.matrix(cast(calculated.data, ~Treatment, value="Glycogen", fun.aggregate=mean))
+summary <- summary[,c(2,1)]
+error.sd <- as.matrix(cast(calculated.data, ~Treatment, value="Glycogen", fun.aggregate=sd))
+error.se <- error.sd/sqrt(5)
+error.se <- error.se[,c(2,1)]
+@
+
+<<label=std-curve, include=FALSE, echo=FALSE>>=
+plot(Glucose~A505, data=std_curve,
+     ylab="Glucose (ug)")
+abline(std_fit)
+@
+
+<<label=summary-tables,echo=FALSE,results=tex>>=
+require(xtable)
+print(xtable(rbind(Mean=summary, SE=error.se), caption = "Summarized Data", label = "tab:two"))
+@
+
+<<label=barplot, include=FALSE, echo=FALSE>>=
+plot <- barplot(summary,
+        ylab="Glycogen Levels (ug/g)",
+        ylim = c(0,400))
+superpose.eb <- function (x, y, ebl, ebu = ebl, length = 0.08, ...)
+  arrows(x, y + ebu, x, y - ebl, angle = 90, code = 3,
+  length = length, ...)
+superpose.eb(plot, summary, error.se)
+@
+
+
+\begin{figure}
+\begin{center}
+<<label=barplot,fig=TRUE,echo=FALSE>>=
+<<barplot>>
+@
+\end{center}
+\caption{Summary of Glycogen Levels.}
+\label{fig:two}
+\end{figure}
+
+<<label=boxplot, include=FALSE, echo=FALSE>>=
+plot <- boxplot(calculated.data$Glycogen~calculated.data$Treatment,
+        ylab="Glycogen Levels (ug/g)",
+        ylim = c(0,700))
+@
+
+
+\begin{figure}
+\begin{center}
+<<label=boxplot,fig=TRUE,echo=FALSE>>=
+<<boxplot>>
+@
+\end{center}
+\caption{Summary of Glycogen Levels.}
+\label{fig:three}
+\end{figure}
+
+\section*{Session Information}
+<<sessionInfo, results=tex, echo=F>>=
+toLatex(sessionInfo())
+@
+
+
+\end{document}
