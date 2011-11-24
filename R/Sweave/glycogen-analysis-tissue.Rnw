@@ -7,9 +7,9 @@
 
 \begin{document}
 
-\title{Effects of Appl1 Knockdown on Glucose Uptake}
-\author{Dave Bridges}
-\date{November 18, 2011}
+\title{Sample Analysis of Glycogen Determination from Tissues}
+\author{The Author}
+\date{The Date}
 \maketitle
 
 <<data-input, echo=TRUE>>=

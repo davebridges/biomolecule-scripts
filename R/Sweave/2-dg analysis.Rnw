@@ -8,8 +8,8 @@
 \begin{document}
 
 \title{Sample Analysis of 2-Deoxyglucose Uptake Experiment}
-\author{Dave Bridges}
-\date{July 9, 2008}
+\author{The Author}
+\date{The Date}
 \maketitle
 
 \section*{Experiment Summary}
