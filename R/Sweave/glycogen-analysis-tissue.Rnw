@@ -47,10 +47,9 @@ abline(std_fit)
 data$Glycogen <- data$A505*coefficients(std_fit) #in ug/assay
 assay.volume <- 100 #uL
 data$total.glycogen <- data$Glycogen*200/assay.volume #in ug
-data$normalized.glycogen <- data$total.glycogen/data$Weight*1000 # in mg/g
+data$normalized.glycogen <- data$total.glycogen/data$Weight*1000 # in ug/g
 calculated.data <- data.frame(Mouse = data$Mouse, 
                               Treatment = data$Treatment,
-                              Blood.Glucose = data$Glucose,
                               Glycogen = data$normalized.glycogen,
                               check.rows=F)
 @
@@ -81,9 +80,10 @@ print(xtable(rbind(Mean=summary, SE=error.se), caption = "Summarized Data", labe
 @
 
 <<label=barplot, include=FALSE, echo=FALSE>>=
+ymax <- max(summary)+max(error.se)
 plot <- barplot(summary,
         ylab="Glycogen Levels (ug/g)",
-        ylim = c(0,400))
+        ylim = c(0,ymax))
 superpose.eb <- function (x, y, ebl, ebu = ebl, length = 0.08, ...)
   arrows(x, y + ebu, x, y - ebl, angle = 90, code = 3,
   length = length, ...)
@@ -104,7 +104,7 @@ superpose.eb(plot, summary, error.se)
 <<label=boxplot, include=FALSE, echo=FALSE>>=
 plot <- boxplot(calculated.data$Glycogen~calculated.data$Treatment,
         ylab="Glycogen Levels (ug/g)",
-        ylim = c(0,700))
+        ylim = c(0,max(calculated.data$Glycogen)))
 @
 
 
