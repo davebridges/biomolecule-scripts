@@ -52,6 +52,8 @@ calculated.data <- data.frame(Mouse = data$Mouse,
                               Treatment = data$Treatment,
                               Glycogen = data$normalized.glycogen,
                               check.rows=F)
+result.t.test <- t.test(normalized.glycogen~Treatment, data=data)
+print(result.t.test) 
 @
 
 <<label=data-tables,echo=FALSE,results=tex>>=
