@@ -26,3 +26,7 @@ awk '$3 == "PIKFYVE"{ print  }' promoters.diff
 
 #output for fpkm tracking a particular gene
 awk '$5 == "PIKFYVE"{ print  }' isoforms.fpkm_tracking
+
+#screens a merged.gtf file for mention of a particular gene and saves it to pikfyve.gtf
+cat merged.gtf | grep "Pikfyve" > pikfyve.gtf
+
