@@ -1,0 +1,306 @@
+\documentclass{article}
+
+\usepackage{fullpage}
+\usepackage[colorlinks=true]{hyperref}
+\usepackage[tableposition=top]{caption}
+\usepackage[utf8]{inputenc}
+
+\begin{document}
+
+\title{ITT Analysis For Two Factor Analysis}
+\author{Dave Bridges}
+\date{April 3, 2012}
+\maketitle
+
+\section*{Experiment Summary}
+Fill in experimental details.  This sweave file is for a two factor analysis (ie a drug/genotype interaction)
+
+<<data files echo=FALSE>>=
+#The csv file should have the following headings (case sensitive) and without the quotes
+#"Cage","Genotype","Mouse","Drug","Fed Weight","Fed Glucose","Fasted Weight","Fasted Glucose","15 min","30 min","45 min","60 min","75 min","90 min","105 min","120 min","AUC"
+#if a column is missing you will have to delet all the mentions of this column in this file
+#AUC is the sum of the time points (including Fasted Glucose).  If this is not calculated then uncomment AUC line.
+#if desired you can download and modify the template at https://github.com/davebridges/biomolecule-scripts/raw/master/R/Sweave/itt_sample_data-two_factor.csv
+setwd('C:/Documents and Settings/davebrid/My Documents/Research') #alter this to your working directory where you want the data saved
+data_file <- "https://github.com/davebridges/biomolecule-scripts/raw/master/R/Sweave/itt_sample_data-two_factor.csv" #this is a mock data file, replace this line with the name of your actual data file
+data <- read.csv(data_file)
+#if AUC is not calculated then uncomment the line below
+#data$AUC <- rowSums(data[8:16])
+@
+
+<<label=data-tables,echo=FALSE,results=tex>>=
+library(xtable)
+print(xtable(data[order(data$Genotype,data$Drug),], caption = "All Data", label = "tab:one"))
+@
+
+\section*{Data Summary}
+<<data-summary, echo=FALSE>>=
+library(plyr) #loads plyr package for ddply function
+#calculate means for each group
+means <- ddply(data,~Genotype*Drug,summarise,
+               X0=mean(Fasted.Glucose, na.rm=TRUE),
+               X15=mean(X15.min, na.rm=TRUE),
+               X30=mean(X30.min, na.rm=TRUE),
+               X45=mean(X45.min, na.rm=TRUE),
+               X60=mean(X60.min, na.rm=TRUE),
+               X75=mean(X75.min, na.rm=TRUE),
+               X90=mean(X90.min, na.rm=TRUE),
+               X105=mean(X105.min, na.rm=TRUE),
+               X120=mean(X120.min, na.rm=TRUE), 
+               AUC=mean(AUC, na.rm=TRUE), 
+               Fasted.Weight=mean(Fasted.Weight, na.rm=TRUE), 
+               Fed.Weight=mean(Fed.Weight, na.rm=TRUE), 
+               Fed.Glucose=mean(Fed.Glucose, na.rm=TRUE))
+means <- means[c(4,2,3,1), ] #this reorders the data, you may want to change this and se below
+#calculates standard errors for each group
+se <- ddply(data,~Genotype*Drug,summarise,
+            X0=sd(Fasted.Glucose, na.rm=TRUE)/sqrt(length(X120.min)),
+            X15=sd(X15.min, na.rm=TRUE)/sqrt(length(X120.min)),
+            X30=sd(X30.min, na.rm=TRUE)/sqrt(length(X120.min)),
+            X45=sd(X45.min, na.rm=TRUE)/sqrt(length(X120.min)),
+            X60=sd(X60.min, na.rm=TRUE)/sqrt(length(X120.min)),
+            X75=sd(X75.min, na.rm=TRUE)/sqrt(length(X120.min)),
+            X90=sd(X90.min, na.rm=TRUE)/sqrt(length(X120.min)),
+            X105=sd(X105.min, na.rm=TRUE)/sqrt(length(X120.min)),
+            X120=sd(X120.min, na.rm=TRUE)/sqrt(length(X120.min)), =
+            AUC=sd(AUC, na.rm=TRUE)/sqrt(length(AUC)), 
+            Fasted.Weight=sd(Fasted.Weight, na.rm=TRUE)/sqrt(length(Fasted.Weight)),
+            Fed.Weight=sd(Fed.Weight, na.rm=TRUE)/sqrt(length(Fed.Weight)), 
+            Fed.Glucose=sd(Fed.Glucose, na.rm=TRUE)/sqrt(length(Fed.Glucose)))
+se <- se[c(4,2,3,1), ] #reorders standard errors
+time <- c(0,15,30,45,60,75,90,105,120)
+means.norm <- means[3:11]/means$X0*100  #normalizes each subject to start at 100%
+se.norm <- se[3:11]/means$X0*100 #adjusts standard errors for normalization
+rownames(means.norm) <- paste(means$Genotype, means$Drug, sep="-")
+@
+The mean data is compiled in \ref{tab:two} with the standard errors in \ref{tab:three}
+
+
+<<anova-stats, echo=FALSE>>=
+#calculate anova based on no interaction between drug and genotype for weights and each time point.
+#this hypothesis can be tested by changing the plus sign for each anova to a '*'
+#these anovas are all calculated for the non-normalized raw data
+fed.weight.fit <- aov(Fed.Weight~Genotype+Drug, data=data)
+fed.glucose.fit <- aov(Fed.Glucose~Genotype+Drug, data=data)
+fasted.weight.fit <- aov(Fasted.Weight~Genotype+Drug, data=data)
+fasted.glucose.fit <- aov(Fasted.Glucose~Genotype+Drug, data=data)
+x15.fit <- aov(X15.min~Genotype+Drug, data=data)
+x30.fit <- aov(X30.min~Genotype+Drug, data=data)
+x45.fit <- aov(X45.min~Genotype+Drug, data=data)
+x60.fit <- aov(X60.min~Genotype+Drug, data=data)
+x75.fit <- aov(X75.min~Genotype+Drug, data=data)
+x90.fit <- aov(X90.min~Genotype+Drug, data=data)
+x105.fit <- aov(X105.min~Genotype+Drug, data=data)
+x120.fit <- aov(X120.min~Genotype+Drug, data=data)
+auc.fit <- aov(AUC~Genotype+Drug, data=data)
+#this generates a summary table showing p-values from ANOVAs for both Genotype and Drug.
+fed.weight.p <- summary(fed.weight.fit)[[1]][["Pr(>F)"]][1:2]
+fasted.weight.p <- summary(fasted.weight.fit)[[1]][["Pr(>F)"]][1:2]
+fed.glucose.p <- summary(fed.glucose.fit)[[1]][["Pr(>F)"]][1:2]
+fasted.glucose.p <- summary(fasted.glucose.fit)[[1]][["Pr(>F)"]][1:2]
+x15min.p <- summary(x15.fit)[[1]][["Pr(>F)"]][1:2]
+x30min.p <- summary(x30.fit)[[1]][["Pr(>F)"]][1:2]
+x45min.p <- summary(x45.fit)[[1]][["Pr(>F)"]][1:2]
+x60min.p <- summary(x60.fit)[[1]][["Pr(>F)"]][1:2]
+x75min.p <- summary(x75.fit)[[1]][["Pr(>F)"]][1:2]
+x90min.p <- summary(x90.fit)[[1]][["Pr(>F)"]][1:2]
+x105min.p <- summary(x105.fit)[[1]][["Pr(>F)"]][1:2]
+x120min.p <- summary(x120.fit)[[1]][["Pr(>F)"]][1:2]
+auc.p <- summary(auc.fit)[[1]][["Pr(>F)"]][1:2]
+anova.summary <- rbind ("Fed Weight" = fed.weight.p, 
+                        "Fasted.Weight" = fasted.weight.p,
+                        "15 min" = x15min.p,
+                        "30 min" = x30min.p,
+                        "45 min" = x45min.p,
+                        "60 min" = x60min.p,
+                        "75 min" = x75min.p,
+                        "90 min" = x90min.p,
+                        "105 min" = x105min.p,
+                        "120 min" = x120min.p,
+                        "AUC" = auc.p)
+colnames(anova.summary) <- c("Genotype", "Drug")
+@
+
+<<advanced-statistics, echo=TRUE>>=
+#For repeated measures anova
+time.points <- data[,8:16] #only the time points
+time.points$eartag <- as.factor(data$Mouse)
+time.points$Genotype <- data$Genotype
+time.points$Cage <- as.factor(data$Cage)
+time.points$Drug <- as.factor(data$Drug)
+require(reshape)
+time.melted <- melt(time.points, id=c("Genotype", "eartag", "Cage", "Drug"))
+time.melted$id <- seq(1,length(time.melted$eartag), 1) #sequential numbering of melted data frame
+aov.rm = aov(value ~ variable*Drug*Genotype + Error(eartag), data=time.melted)
+summary(aov.rm)
+#for linear mixed effects model
+require(lme4)
+lme.fm1 <- lmer(value ~ variable + Genotype + Drug + (1 | eartag), data=time.melted)
+lme.fm2 <- lmer(value ~ variable + Genotype + (1 | eartag), data=time.melted)
+lme.fm3 <- lmer(value ~ variable + Drug + (1 | eartag), data=time.melted)
+lme.fm4 <- lmer(value ~ Genotype + Drug + (1 | eartag), data=time.melted)
+anova(lme.fm1, lme.fm3) #test for main effect of Genotype
+anova(lme.fm1, lme.fm2) #test for main effect of Drug
+anova(lme.fm1, lme.fm4) #test for main effect of Insulin
+#post-hoc testing for main effects of drug
+require(multcomp) #for glht function
+summary(glht(lme.fm1,linfct=mcp(Drug="Tukey")))
+summary(glht(lme.fm1,linfct=mcp(Genotype="Tukey")))
+summary(glht(lme.fm1,linfct=mcp(variable="Tukey")))
+#same analysis but normalized to fasting glucose
+time.points.norm <- data[,8:16]/time.points[,1] #only the time points
+time.points.norm$eartag <- as.factor(data$Mouse)
+time.points.norm$Genotype <- data$Genotype
+time.points.norm$Cage <- as.factor(data$Cage)
+time.points.norm$Drug <- as.factor(data$Drug)
+time.melted.norm <- melt(time.points.norm, id=c("Genotype", "eartag", "Cage", "Drug"))
+time.melted.norm$id <- seq(1,length(time.melted.norm$eartag), 1) #sequential numbering of melted data frame
+lme.fm1.norm <- lmer(value ~ variable + Genotype + Drug + (1 | eartag), data=time.melted.norm)
+lme.fm2.norm <- lmer(value ~ variable + Genotype + (1 | eartag), data=time.melted.norm)
+lme.fm3.norm <- lmer(value ~ variable + Drug + (1 | eartag), data=time.melted.norm)
+lme.fm4.norm <- lmer(value ~ Genotype + Drug + (1 | eartag), data=time.melted.norm)
+anova(lme.fm1.norm, lme.fm3.norm) #test for main effect of Genotype
+anova(lme.fm1.norm, lme.fm2.norm) #test for main effect of Drug
+anova(lme.fm1.norm, lme.fm4.norm) #test for main effect of Insulin
+@
+
+<<label=avg-tables,echo=FALSE,results=tex>>=
+print(xtable(means, caption = "Averaged Data", label = "tab:two"), include.rownames = FALSE)
+print(xtable(se, caption = "Standard Error", label = "tab:three"), include.rownames = FALSE)
+@
+\pagebreak
+\section*{ANOVA Analysis}
+<<label=anovas,echo=FALSE,results=tex>>=
+print(xtable(anova.summary, caption = "ANOVA p-values for Non-Normalized Data", label = "tab:four"), include.rownames = FALSE)
+@
+
+\pagebreak
+\section*{Graphs}
+
+<<label=auc, include=FALSE, echo=FALSE>>=
+colors <- c("black","red","black","red")
+plot <- barplot(means$AUC, names.arg=(means$Genotype),  
+                ylim=c(0,800),
+                ylab="Area Under Curve",
+                col=c(colors[1],colors[1],colors[2],colors[2]))
+superpose.eb <- function (x, y, ebl, ebu = ebl, length = 0.08, ...)
+arrows(x, y + ebu, x, y - ebl, angle = 90, code = 3,
+length = length, ...)
+legend("topleft", levels(means$Drug), fill=colors, bty="n")
+superpose.eb(plot, means$AUC, se$AUC)
+@
+
+\begin{figure}
+\begin{center}
+<<label=auc,fig=TRUE,echo=FALSE>>=
+<<auc>>
+@
+\end{center}
+\caption{Area Under Curve Summary}
+\label{fig:one}
+\end{figure}
+
+<<label=weight, include=FALSE, echo=FALSE>>=
+plot <- barplot(means$weight, names.arg=(means$Genotype),  
+                ylim=c(0,23),
+                ylab="Body Weight (g)",
+                col=c(colors[1],colors[1],colors[2],colors[2]))
+superpose.eb(plot, means$weight, se$weight)
+legend("topleft", levels(means$Drug), fill=colors, bty="n")
+@
+
+\begin{figure}
+\begin{center}
+<<label=weight,fig=TRUE,echo=FALSE>>=
+<<weight>>
+@
+\end{center}
+\caption{Body Weight Summary}
+\label{fig:two}
+\end{figure}
+
+<<label=fasting-glucose, include=FALSE, echo=FALSE>>=
+plot <- barplot(means$X0, names.arg=(means$Genotype),  
+                ylim=c(0,130),
+                ylab="Fasting Glucose (mg/dL",
+                col=c(colors[1],colors[1],colors[2],colors[2]))
+superpose.eb(plot, means$X0, se$X0)
+legend("topleft", levels(means$Drug), fill=colors, bty="n")
+@
+
+\begin{figure}
+\begin{center}
+<<label=fasting-glucose,fig=TRUE,echo=FALSE>>=
+<<fasting-glucose>>
+@
+\end{center}
+\caption{Fasting Glucose Summary}
+\label{fig:three}
+\end{figure}
+
+<<label=itt, include=FALSE, echo=FALSE>>=
+itt.colors <- c("black","black","red","red")
+  plot(time,means[1,3:11],
+     type="l",
+     ylim=c(0,110),
+     lty=1,
+     ylab="Blood Glucose (mg/dL)", 
+     xlab="Time after Insulin Injection (minutes)",
+       col=itt.colors[1])
+lines(time,means[2,3:11], type="l", lty=2, col=itt.colors[2])
+lines(time,means[3,3:11], type="l", lty=1, col=itt.colors[3])
+lines(time,means[4,3:11], type="l", lty=2, col=itt.colors[4])
+superpose.eb(time, as.numeric(means[1,3:11]), as.numeric(se[1,3:11]), lty=1, col=itt.colors[1])
+superpose.eb(time, as.numeric(means[2,3:11]), as.numeric(se[2,3:11]), lty=1, col=itt.colors[2])
+superpose.eb(time, as.numeric(means[3,3:11]), as.numeric(se[3,3:11]), lty=1, col=itt.colors[3])
+superpose.eb(time, as.numeric(means[4,3:11]), as.numeric(se[4,3:11]), lty=1, col=itt.colors[4])
+legend("bottomleft", as.character(rownames(means.norm)), bty="n", lty=c(1,2,1,2), col=itt.colors)
+@
+
+\begin{figure}
+\begin{center}
+<<label=itt,fig=TRUE,echo=FALSE>>=
+<<itt>>
+@
+\end{center}
+\caption{Insulin Tolerance Test}
+\label{fig:four}
+\end{figure}
+
+
+
+<<label=itt-norm, include=FALSE, echo=FALSE>>=
+plot(time,means.norm[1,], type="l", 
+     ylim=c(0,105), 
+     lty=1, 
+     ylab="Blood Glucose (% of Fasted)", 
+     xlab="Time after Insulin Injection (minutes)",
+     col=itt.colors[1])
+lines(time,means.norm[2,], type="l", lty=2, col=itt.colors[2])
+lines(time,means.norm[3,], type="l", lty=1, col=itt.colors[3])
+lines(time,means.norm[4,], type="l", lty=2, col=itt.colors[4])
+superpose.eb(time, as.numeric(means.norm[1,]), as.numeric(se.norm[1,]), lty=1, col=itt.colors[1])
+superpose.eb(time, as.numeric(means.norm[2,]), as.numeric(se.norm[2,]), lty=1, col=itt.colors[2])
+superpose.eb(time, as.numeric(means.norm[3,]), as.numeric(se.norm[3,]), lty=1, col=itt.colors[3])
+superpose.eb(time, as.numeric(means.norm[4,]), as.numeric(se.norm[4,]), lty=1, col=itt.colors[4])
+legend("bottomleft", as.character(rownames(means.norm)), bty="n", lty=c(1,2,1,2), col=itt.colors)
+@
+
+\begin{figure}
+\begin{center}
+<<label=itt-norm,fig=TRUE,echo=FALSE>>=
+<<itt-norm>>
+@
+\end{center}
+\caption{Normalized Insulin Tolerance Test}
+\label{fig:six}
+\end{figure}
+
+
+\section*{Session Information}
+<<sessionInfo, results=tex, echo=F>>=
+toLatex(sessionInfo())
+@
+
+
+\end{document}
