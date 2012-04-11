@@ -28,8 +28,8 @@ cufflinks -p 3 -o tophat2/Sample10837clout tophat2/Sample10837th2out/accepted_hi
 cufflinks -p 3 -o tophat2/Sample10838clout tophat2/Sample10838th2out/accepted_hits.bam
 cufflinks -p 3 -o tophat2/Sample10839clout tophat2/Sample10839th2out/accepted_hits.bam
 cufflinks -p 3 -o tophat2/Sample10840clout tophat2/Sample10840th2out/accepted_hits.bam
-cuffmerge -g genes.gtf -s mm9.fa -p 3 assemblies_tophat2.txt
-cuffdiff -o diff_out -b mm9.fa -p 3 -L Sample1/Sample2 -u merged_asm/merged.gtf ./tophat2/Sample10829th2out/accepted_hits.bam,./tophat2/Sample10830th2out/accepted_hits.bam,./tophat2/Sample10831th2out/accepted_hits.bam,./tophat2/Sample10832th2out/accepted_hits.bam,./tophat2Sample10833th2out/accepted_hits.bam,./tophat2/Sample10834th2out/accepted_hits.bam ./tophat2/Sample10835th2out/accepted_hits.bam,./tophat2/Sample10836th2out/accepted_hits.bam,./tophat2/Sample10837th2out/accepted_hits.bam,./tophat2/Sample10838th2out/accepted_hits.bam,./tophat2/Sample10839th2out/accepted_hits.bam,./tophat2/Sample10840th2out/accepted_hits.bam
+cuffmerge -g mm10_genes.gtf -s mm10.fa -p 3 assemblies_tophat2.txt
+cuffdiff -o tophat2/diff_out -b mm10.fa -p 3 -L Sample1/Sample2 -u merged_asm/merged.gtf ./tophat2/Sample10829th2out/accepted_hits.bam,./tophat2/Sample10830th2out/accepted_hits.bam,./tophat2/Sample10831th2out/accepted_hits.bam,./tophat2/Sample10832th2out/accepted_hits.bam,./tophat2Sample10833th2out/accepted_hits.bam,./tophat2/Sample10834th2out/accepted_hits.bam ./tophat2/Sample10835th2out/accepted_hits.bam,./tophat2/Sample10836th2out/accepted_hits.bam,./tophat2/Sample10837th2out/accepted_hits.bam,./tophat2/Sample10838th2out/accepted_hits.bam,./tophat2/Sample10839th2out/accepted_hits.bam,./tophat2/Sample10840th2out/accepted_hits.bam
 #merge all accepted_hits.bam into one large bam file
 samtools merge all_accepted_hits.bam *out/accepted_hits.bam
 #index each of the accepted_hits.bam files (including the new large one)
