@@ -1,5 +1,8 @@
 #!/bin/sh
 #before starting symlink to the appropriate annotation index genes.gtf and symlink mm9 or hg19 to the bowtie index
+#sample commands:
+#ln -s /database/reference-annotations/Mus_musculus/UCSC/mm10/genes.gtf mm10_genes.gtf
+#ln -s /database/reference-annotations/Mus_musculus/UCSC/mm10/mm10_th2.* .
 #once fastq files are extracted into folders, adjust the numbering and the grouping (in cuffdiff) accordingly
 tophat -p 3 -G mm10_genes.gtf -o tophat2/Sample10829th2out mm10_th2 Sample10829/sample10829.fastq
 tophat -p 3 -G mm10_genes.gtf -o tophat2/Sample10830th2out mm10_th2 Sample10830/Sample10830.fastq
