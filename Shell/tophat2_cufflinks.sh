@@ -1,18 +1,18 @@
 #!/bin/sh
 #before starting symlink to the appropriate annotation index genes.gtf and symlink mm9 or hg19 to the bowtie index
 #once fastq files are extracted into folders, adjust the numbering and the grouping (in cuffdiff) accordingly
-tophat -p 3 -G genes.gtf -o tophat2/Sample10829th2out mm10_th2 Sample10829/sample10829.fastq
-tophat -p 3 -G genes.gtf -o tophat2/Sample10830th2out mm10_th2 Sample10830/Sample10830.fastq
-tophat -p 3 -G genes.gtf -o tophat2/Sample10831th2out mm10_th2 Sample10831/Sample10831.fastq
-tophat -p 3 -G genes.gtf -o tophat2/Sample10832th2out mm10_th2 Sample10832/Sample10832.fastq
-tophat -p 3 -G genes.gtf -o tophat2/Sample10833th2out mm10_th2 Sample10833/Sample10833.fastq
-tophat -p 3 -G genes.gtf -o tophat2/Sample10834th2out mm10_th2 Sample10834/Sample10834.fastq
-tophat -p 3 -G genes.gtf -o tophat2/Sample10835th2out mm10_th2 Sample10835/Sample10835.fastq
-tophat -p 3 -G genes.gtf -o tophat2/Sample10836th2out mm10_th2 Sample10836/Sample10836.fastq
-tophat -p 3 -G genes.gtf -o tophat2/Sample10837th2out mm10_th2 Sample10837/Sample10837.fastq
-tophat -p 3 -G genes.gtf -o tophat2/Sample10838th2out mm10_th2 Sample10838/Sample10838.fastq
-tophat -p 3 -G genes.gtf -o tophat2/Sample10839th2out mm10_th2 Sample10839/Sample10839.fastq
-tophat -p 3 -G genes.gtf -o tophat2/Sample10840th2out mm10_th2 Sample10840/Sample10840.fastq
+tophat -p 3 -G mm10_genes.gtf -o tophat2/Sample10829th2out mm10_th2 Sample10829/sample10829.fastq
+tophat -p 3 -G mm10_genes.gtf -o tophat2/Sample10830th2out mm10_th2 Sample10830/Sample10830.fastq
+tophat -p 3 -G mm10_genes.gtf -o tophat2/Sample10831th2out mm10_th2 Sample10831/Sample10831.fastq
+tophat -p 3 -G mm10_genes.gtf -o tophat2/Sample10832th2out mm10_th2 Sample10832/Sample10832.fastq
+tophat -p 3 -G mm10_genes.gtf -o tophat2/Sample10833th2out mm10_th2 Sample10833/Sample10833.fastq
+tophat -p 3 -G mm10_genes.gtf -o tophat2/Sample10834th2out mm10_th2 Sample10834/Sample10834.fastq
+tophat -p 3 -G mm10_genes.gtf -o tophat2/Sample10835th2out mm10_th2 Sample10835/Sample10835.fastq
+tophat -p 3 -G mm10_genes.gtf -o tophat2/Sample10836th2out mm10_th2 Sample10836/Sample10836.fastq
+tophat -p 3 -G mm10_genes.gtf -o tophat2/Sample10837th2out mm10_th2 Sample10837/Sample10837.fastq
+tophat -p 3 -G mm10_genes.gtf -o tophat2/Sample10838th2out mm10_th2 Sample10838/Sample10838.fastq
+tophat -p 3 -G mm10_genes.gtf -o tophat2/Sample10839th2out mm10_th2 Sample10839/Sample10839.fastq
+tophat -p 3 -G mm10_genes.gtf -o tophat2/Sample10840th2out mm10_th2 Sample10840/Sample10840.fastq
 cufflinks -p 3 -o tophat2/Sample10829clout tophat2/Sample10829th2out/accepted_hits.bam
 cufflinks -p 3 -o tophat2/Sample10830clout tophat2/Sample10830th2out/accepted_hits.bam
 cufflinks -p 3 -o tophat2/Sample10831clout tophat2/Sample10831th2out/accepted_hits.bam
