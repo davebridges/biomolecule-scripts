@@ -1,0 +1,137 @@
+\documentclass{article}
+
+\usepackage{fullpage}
+\usepackage[colorlinks=true]{hyperref}
+\usepackage[tableposition=top]{caption}
+\usepackage[utf8]{inputenc}
+\usepackage{times}
+
+\begin{document}
+
+\title{Some Title}
+\author{Dave Bridges}
+\date{Date}
+\maketitle
+
+\section*{Experiment Summary}
+%enter some notes about the experiment
+
+<<data files echo=FALSE>>=
+#this template requires a csv file with headings A595, Lipid and Glycogen, case matters. (the latter two correspond to the counts)
+filename = "data file.csv" #change this to your file name
+data = read.csv(filename)
+glycogen.blanks = c(12,13,12) #enter blanks for glycogen samples
+lipid.blanks = c(16,13,14) #enter blanks for lipid samples
+glycogen.totals = c(2307598,2342287,2253051) #enter 5uL glucose for glycogen samples
+lipid.totals = c(1887727,1861699,1867759) #enter 5uL glucose for lipid samples
+slope <- 0.0505
+bradford.volume <- 20 #in uL
+data$treatment <- c(rep("Basal",3), 
+               rep("Insulin",3),
+               rep("Basal",3), 
+               rep("Insulin",3)) #enter sample order for insulin
+data$knockdown <- c(rep("Control",6),
+               rep("Knockdown",6)) #enter sample order for treatments
+
+@
+
+<<calculations, echo=FALSE>>=
+protein <- a595/slope/bradford.volume/1000 #normalize to protein levels (in mg/mL).  If protein is entered in decimal (A595 = 0.123) then remove the 1000 convesion factor
+#presumes counting 5 uL.
+total.lipid <- lipid.totals*10 #converts 5 uL to the 50uL added per well
+total.glycogen <- glycogen totals*10 #converts 5 uL to the 50uL added per well
+nmoles <- 50E-6*5E-3*1E9 #for 50 uL, at 5 mM, converted to nmoles.
+cpm.nmol.lipid <- total.lipid/nmoles
+cpm.nmol.glycogen <- total.glycogen/nmoles
+nmoles.lipid <- lipid.counts/cpm.nmol.lipid
+nmoles.glycogen <- glycogen.counts/cpm.nmol.glycogen
+#counts 2/3 mL of lipid layer, which was 400 uL out of 1mL total lysate
+normalized.lipid <- nmoles.lipid/protein*3/2*1000/400
+#counts all of the glycogen precipitate, which was 400 uL out of 1mL total lysate
+normalized.glycogen <- nmoles.glycogen/protein*1000/400
+data <- data.frame(drug,knockdown, treatment,protein,normalized.lipid, normalized.glycogen)
+@
+
+<<label=data-tables,echo=FALSE,results=tex>>=
+require(xtable)
+print(xtable(data, caption = "Raw Data", label = "tab:one"), include.rownames=F)
+print(xtable(raw.data, caption = "Calculated Data", label = "tab:two"), include.rownames=F)
+@
+
+<<summary, echo=FALSE>>=
+write.csv(data, file="calculated data.csv")
+require(plyr)
+summary.lipid<- ddply(data, c("drug", "knockdown", "treatment"), 
+                   function(data) return(c(average=mean(data$normalized.lipid), se=sd(data$normalized.lipid)/sqrt((length(data$normalized.lipid))))))
+summary.glycogen<- ddply(data, c("drug", "knockdown", "treatment"), 
+                   function(data) return(c(average=mean(data$normalized.glycogen), se=sd(data$normalized.glycogen)/sqrt(length(data$normalized.glycogen)))))
+glycogen <- cbind(subset(summary.glycogen, treatment == "Basal", select=c(drug, knockdown, average)),subset(summary.glycogen, treatment == "Insulin", select=average))
+lipid <- cbind(subset(summary.lipid, treatment == "Basal", select=c(drug, knockdown, average)),subset(summary.lipid, treatment == "Insulin", select=average))
+colnames(lipid) <- c("Drug", "Knockdown", "Basal", "Insulin")
+glycogen.se <- cbind(subset(summary.glycogen, treatment == "Basal", select=c(drug, knockdown, se)),subset(summary.glycogen, treatment == "Insulin", select=se))
+colnames(glycogen) <- c("Drug", "Knockdown", "Basal", "Insulin")
+lipid.se <- cbind(subset(summary.lipid, treatment == "Basal", select=c(drug, knockdown, se)),subset(summary.lipid, treatment == "Insulin", select=se))
+
+
+@
+<<label=data-tables,echo=FALSE,results=tex>>=
+print(xtable(lipid, caption = "Lipid Summary Data", label = "tab:one"), include.rownames=F)
+print(xtable(glycogen, caption = "Glycogen Summary Data", label = "tab:two"), include.rownames=F)
+print(xtable(lipid.se, caption = "Lipid Standard Error Data", label = "tab:one"), include.rownames=F)
+print(xtable(glycogen.se, caption = "Glycogen Standard Error Data", label = "tab:two"), include.rownames=F)
+@
+
+
+<<label=glycogen-barplot,include=FALSE, echo=FALSE>>=
+require(RColorBrewer)
+plot <- barplot(
+  as.matrix(glycogen[3:4]), 
+	beside=T, 
+  col=brewer.pal(4, "Paired"),
+	ylab="Glucose Incorporation into Glycogen (nmoles/mg protein)",
+	ylim=c(0,3.5))
+legend("topleft", paste(glycogen$Drug, glycogen$Knockdown, sep=' - '), fill=brewer.pal(4, "Paired"), bty="n")
+superpose.eb <- function (x, y, ebl, ebu = ebl, length = 0.08, ...)
+  arrows(x, y + ebu, x, y - ebl, angle = 90, code = 3,
+  length = length, ...)
+superpose.eb(plot, as.matrix(glycogen[3:4]), as.matrix(glycogen.se[3:4]))
+@
+
+\begin{figure}
+\begin{center}
+<<label=glycogen-barplot,fig=TRUE,echo=FALSE>>=
+<<glycogen-barplot>>
+@
+\end{center}
+\caption{Effects of Fab1 Knockdown and Rapamycin on Glucose Incorporation into Glycogen}
+\label{fig:one}
+\end{figure}
+
+<<label=lipid-barplot,include=FALSE, echo=FALSE>>=
+plot <- barplot(
+  as.matrix(lipid[3:4]), 
+  beside=T, 
+  col=brewer.pal(4, "Paired"),
+	ylab="Glucose Incorporation into Lipid (nmoles/mg protein)",
+	ylim=c(0,1.5))
+legend("topleft", paste(lipid$Drug, lipid$Knockdown, sep=' - '), fill=brewer.pal(4, "Paired"), bty="n")
+superpose.eb(plot, as.matrix(lipid[3:4]), as.matrix(lipid.se[3:4]))
+@
+
+\begin{figure}
+\begin{center}
+<<label=lipid-barplot,fig=TRUE,echo=FALSE>>=
+<<lipid-barplot>>
+@
+\end{center}
+\caption{Effects of Fab1 Knockdown and Rapamycin on Glucose Incorporation into Glycogen}
+\label{fig:one}
+\end{figure}
+
+\section*{Session Information}
+<<sessionInfo, results=tex, echo=F>>=
+toLatex(sessionInfo())
+@
+
+
+\end{document}
