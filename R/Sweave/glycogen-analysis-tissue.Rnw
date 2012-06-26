@@ -14,10 +14,13 @@
 
 <<data-input, echo=TRUE>>=
 setwd('some location')
-data_file <- "raw_data.csv" #columns Volume, Glucose, A505
-std_curve_file <- "std_curve.csv" #columns Treatment, Weight, A505
+data_file <- "raw_glycogen_data.csv" #columns include Volume, Weight, A505 and Treatment or Genotype
 data <- read.csv(data_file)
-std_curve <- read.csv(std_curve_file)
+#std_curve_file <- "std_curve.csv" #columns Glucose, A505
+#std_curve <- read.csv(std_curve_file)
+#uncomment the previous two lines and comment the next two if entering std curve data from a file
+std_curve <- data.frame(Glucose = c(0,0.2,0.4,0.6,0.8,1.0), A505=c(0,140,269,360,471,561)) 
+
 @
 
 <<std-curve-analysis, echo=TRUE>>=
@@ -52,7 +55,8 @@ calculated.data <- data.frame(Mouse = data$Mouse,
                               Treatment = data$Treatment,
                               Glycogen = data$normalized.glycogen,
                               check.rows=F)
-result.t.test <- t.test(normalized.glycogen~Treatment, data=data)
+result.t.test <- t.test(Glycogen~Treatment, data=calculated.data) #for single comparason
+#result.t.test <- with(calculated.data, pairwise.t.test(Glycogen,Treatment)) for multiple comparasons
 print(result.t.test) 
 @
 
