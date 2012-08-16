@@ -1,0 +1,103 @@
+\documentclass{article}
+
+\usepackage{fullpage}
+\usepackage[colorlinks=true]{hyperref}
+\usepackage[tableposition=top]{caption}
+\usepackage[utf8]{inputenc}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\title{Aging Analysis of Something}
+\author{Enter your Name Here}
+\date{\today}
+\maketitle
+
+\section*{Data Entry}
+These data are accumulated from the database.  The analysis includes all alive animals, animals which were sacrificed and animals which died of natural causes (denoted in the database as "Unknown").  Animals which died with an estimated death date are excluded from the analysis.  We are testing the effects of age on death by natural causes.
+<<data files>>=
+setwd("Some Directory")
+#download from database or make a table with columns Genotype, Age and Death.  For the event you are testing, set Death == "WHATEVER" below
+#see http://www.statmethods.net/advstats/glm.html for details
+#data file location
+data <- read.csv(file="somefile.csv")
+#removes animals from analysis with an estimated death time
+data.useful <- subset(data, Death != c("Estimated"))
+#filter for whatever genotypes you want to test.  This is for a floxed/cre experiment.  Can skip these
+data.filtered <- subset(data.useful, Genotype %in% c("fl/fl; Tg/+", "fl/fl; +/+", "+/+; +/+", "+/+; Tg/+"))
+#for floxed/cre this just compares wt/ko
+data.filtered.ko <- subset(data.useful, Genotype %in% c("fl/fl; Tg/+", "fl/fl; +/+"))
+@
+\section*{Data Preparation}
+<<subset>>=
+#subset for Strain if necessary
+data.known <- subset(data.filtered, Strain == "Strain",)
+data.known <- droplevels(data.known) # removes unused levels
+data.known.ko <- subset(data.filtered.ko, Strain == "Strain",)
+data.known.ko <- droplevels(data.known.ko) # removes unused levels
+@
+
+This plot analyses all of the natural deaths (marked in the database as unknown)
+<<data-analysis-all>>=
+library(survival)
+data.genotyped <- subset(data.known, Genotype != "N.D.") #renove undetermined genotypes
+#presumed the event you are testing for is Death = "Unknown"
+survobj.all <- with(data.genotyped, Surv(Age, Death=="Unknown"))
+surv.fit.all <- survfit(survobj.all~Strain, data=data.genotyped)
+plot(surv.fit.all)
+@
+
+This analysis looks at all four genotype, then at just WT/KO
+<<data-analysis>>=
+#for all four genotypes
+survobj <- with(data.known, Surv(Age,Death=="Unknown"))
+surv.fit <- survfit(survobj.Genotype, data=data.known.
+summary(surv.fit.
+sdf.<- survdiff(formula=survobj~Genotype, data=data.known)
+sdf
+coxph(formula=survobj~Genotype, data=data.known)
+#for wt v ko
+survobj.ko <- with(data.known.ko, Surv(Age,Death=="Unknown"))
+surv.fit.ko <- survfit(survobj~Genotype, data=data.known)
+#summary(surv.fit.ko) same as for all four genotypes
+sdf.ko <- survdiff(formula=survobj.ko~Genotype, data=data.known.ko)
+sdf.ko
+coxph(formula=survobj.ko~Genotype, data=data.known.ko)
+@
+
+<<label=fitting, include=FALSE, echo=FALSE>>=
+library(RColorBrewer)
+colors <- brewer.pal(4, "Set1")
+plot(surv.fit, xlab="Survival Time in Days",
+    ylab="% Surviving",
+     yscale=100, 
+     col=colors,
+     mark.time=F,
+     sub = bquote(p-value : .(pchisq(sdf$chisq, df=3, lower=FALSE))))
+legend("bottomleft", c("Wild-Type", "Transgene", "Floxed", "Knockout"), bty="n",fill=colors)
+@
+
+<<label=data,echo=FALSE,results=tex>>=
+library(xtable)
+summary <- cbind(sdf$n, sdf$obs)
+colnames(summary) <- c("Total Animals", "Natural Deaths")
+print(xtable(xtable(summary), caption = "Knockout Summary", label = "tab:two", digit=0))
+@
+
+\begin{figure}
+\begin{center}
+<<label=fitting,fig=TRUE,echo=FALSE>>=
+<<fitting>>
+@
+\end{center}
+\caption{Survival Curve}
+\label{fig:one}
+\end{figure}
+
+\section*{Session Information}
+<<sessionInfo, results=tex, echo=F>>=
+toLatex(sessionInfo())
+@
+
+
+\end{document}
