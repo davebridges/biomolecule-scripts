@@ -1,0 +1,85 @@
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\title{qPCR Analysis Sample Analysis}
+\author{Dave Bridges} % enter name here
+\date{\today} %or todays date
+\maketitle
+
+\section*{Summary} %fill ni details about experiment
+Prepared cDNA from total RNA using the AB kit.  Used 10 uL (1.6-5.2ug RNA).  Several runs had double curve.
+
+<<data-input>>=
+setwd("") #set working directory for file
+data_file <- "somefile.csv" #set input file name
+raw_data <- read.csv(data_file, skip=10, header=T) #skip first 10 lines of output file
+Ct_data <- data.frame(Sample.Name= raw_data$Sample.Name,
+                      Detector.Name = raw_data$Detector.Name, 
+                      Reporter=raw_data$Reporter, 
+                      Ct=raw_data$Ct,
+                      Bad = raw_data$Quantity)
+Ct_data <- data.frame(Sample.Name= raw_data$Sample.Name,
+                      Detector.Name = raw_data$Detector.Name, 
+                      Reporter=raw_data$Reporter, 
+                      Ct=raw_data$Ct,
+                      Bad = raw_data$Quantity)
+Ct_data_corrected <- subset(Ct_data, Bad != "x")
+require(reshape)
+combined_data <- cast(Ct_data_corrected, Detector.Name ~ Reporter, mean, value="Ct")
+combined_data <- combined_data[c(5,2,4,1,3,6),] #rearrange data frame if necessary
+@
+\section*{Control Gene}
+Tested for correlation between the control genes, see Table~\ref{tab:one}
+<<control-gene>>=
+control_genes <- combined_data[2:5]
+correlations <- cor(control_genes, use="pairwise.complete.obs")
+rownames(correlations) <- colnames(control_genes)
+colnames(correlations) <- colnames(control_genes)
+@
+
+Chose to use \textbf{ARBP} since ARBP and Cyclophilin A correlated with a coefficient of \textbf{\Sexpr{round(correlations[2,3], 3)}}.
+
+<<label=data-tables,echo=FALSE,results=tex>>=
+require(xtable)
+print(xtable(correlations, caption = "Control Gene Correlations", label = "tab:one"), include.rownames=T)
+@
+
+<<normalization>>=
+subtracted_data <- combined_data[2:13]-combined_data$ARBP
+power_data <- 2^-subtracted_data
+rownames(power_data) <- combined_data$Detector.Name
+power_data <- as.data.frame(power_data)
+@
+
+
+<<label=summary-tables,echo=FALSE,results=tex>>=
+print(xtable(t(power_data), caption = "Averaged Expression Values", label = "tab:two", include.rownames=T))
+@
+
+
+\section*{Analysis} %this is if you are grouping data across several mice
+<<summary>>=
+require(plyr)
+means <- ddply(
+              normalized_data,
+              ~Genotype, summarise, 
+              Gene1=mean(Gene1, na.rm=T))
+errors <- ddply(
+              normalized_data,
+              ~Genotype, summarise, 
+              Gene1=sd(Gene1, na.rm=T)/sqrt(length(Gene1)))
+@
+
+<<label=summary-tables,echo=FALSE,results=tex>>=
+print(xtable(means, caption = "Averaged Expression Values", label = "tab:one", include.rownames=F))
+@
+
+\section*{Session Information}
+<<sessionInfo, results=tex, echo=F>>=
+toLatex(sessionInfo())
+@
+
+
+\end{document}
