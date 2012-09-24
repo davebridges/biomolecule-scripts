@@ -14,12 +14,7 @@ Prepared cDNA from total RNA using the AB kit.  Used 10 uL (1.6-5.2ug RNA).  Sev
 <<data-input>>=
 setwd("") #set working directory for file
 data_file <- "somefile.csv" #set input file name
-raw_data <- read.csv(data_file, skip=10, header=T) #skip first 10 lines of output file
-Ct_data <- data.frame(Sample.Name= raw_data$Sample.Name,
-                      Detector.Name = raw_data$Detector.Name, 
-                      Reporter=raw_data$Reporter, 
-                      Ct=raw_data$Ct,
-                      Bad = raw_data$Quantity)
+raw_data <- read.csv(data_file, skip=10, header=T, na.strings="Undetermined") #skip first 10 lines of output file
 Ct_data <- data.frame(Sample.Name= raw_data$Sample.Name,
                       Detector.Name = raw_data$Detector.Name, 
                       Reporter=raw_data$Reporter, 
