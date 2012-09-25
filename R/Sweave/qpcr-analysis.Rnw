@@ -67,10 +67,6 @@ errors <- ddply(
               Gene1=sd(Gene1, na.rm=T)/sqrt(length(Gene1)))
 @
 
-<<label=summary-tables,echo=FALSE,results=tex>>=
-print(xtable(means, caption = "Averaged Expression Values", label = "tab:one", include.rownames=F))
-@
-
 \section*{Session Information}
 <<sessionInfo, results=tex, echo=F>>=
 toLatex(sessionInfo())
