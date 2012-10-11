@@ -58,12 +58,12 @@ dataset <- data.frame(Knockdown = data$knockdown,
 
 <<label=data-tables,echo=FALSE,results=tex>>=
 require(xtable)
-print(xtable(data, caption = "Raw Data", label = "tab:one"), include.rownames=F)
-print(xtable(raw.data, caption = "Calculated Data", label = "tab:two"), include.rownames=F)
+print(xtable(dataset, caption = "Raw Data", label = "tab:one"), include.rownames=F)
+print(xtable(data, caption = "Calculated Data", label = "tab:two"), include.rownames=F)
 @
 
 <<summary, echo=FALSE>>=
-write.csv(data, file="calculated data.csv")
+write.csv(dataset, file="calculated data.csv")
 require(plyr)
 summary.lipid<- ddply(dataset , .(Treatment,Drug), 
                       summarise,
