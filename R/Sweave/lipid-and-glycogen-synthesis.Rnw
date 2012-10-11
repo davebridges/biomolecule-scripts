@@ -107,9 +107,8 @@ max.y.glycogen <- max(glycogen[2:3]) + max(glycogen.se[2:3])
 plot <- barplot(
   as.matrix(glycogen[2:3]), 
 	beside=T, 
-  col=brewer.pal(4, "Paired"),
 	ylab="Glucose Incorporation into Glycogen (nmoles/mg protein)",
-	ylim=c(0,3.5))
+	ylim=c(0,max.y.glycogen))
 superpose.eb <- function (x, y, ebl, ebu = ebl, length = 0.08, ...)
   arrows(x, y + ebu, x, y - ebl, angle = 90, code = 3,
   length = length, ...)
@@ -133,7 +132,7 @@ plot <- barplot(
   as.matrix(lipid[3:4]), 
   beside=T, 
 	ylab="Glucose Incorporation into Lipid (nmoles/mg protein)",
-	ylim=c(0,1.5))
+	ylim=c(0,max.y.lipid))
 legend("topleft", as.character(glycogen$Drug), bty="n", fill=grey.colors(2))
 superpose.eb(plot, as.matrix(lipid[3:4]), as.matrix(lipid.se[3:4]))
 @
