@@ -18,6 +18,8 @@
 
 <<data files echo=FALSE>>=
 #this template requires a csv file with headings A595, Lipid and Glycogen, case matters. (the latter two correspond to the counts)
+directory = "S:\Data\Somewhere" #change this to your working directory
+setwd(directory)
 filename = "data_file.csv" #change this to your file name
 data = read.csv(filename)
 glycogen.blanks = c(12,13,12) #enter blanks for glycogen samples
