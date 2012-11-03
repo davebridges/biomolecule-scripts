@@ -1,0 +1,13 @@
+These are sample files for the generation of a RDML file.
+
+The file descriptions are based on http://www.rdml.org/help.php
+
+There are several files that can be combined to make a RDML file:
+
+* quantification.txt
+* amplification.txt
+* melting_curve.txt
+* annotation.txt
+* target_annotation.txt
+* experimenters.txt
+* cycling.txt
