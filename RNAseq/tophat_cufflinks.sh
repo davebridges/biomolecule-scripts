@@ -20,8 +20,8 @@ for sample in Sample_12100 Sample_12101 Sample_12102 Sample_12103 Sample_12104 S
 
 do
   #run tophat alignment
-  echo "tophat2 -p 11 -G $GTF -o tophat_out/$sample reference-annotations/Homo_sapiens.GRCh37.69 $sample.fa" > $sample.sh
-  echo "cufflinks -p 11 -o -g reference-annotations/Homo_sapiens.GRCh37.69.gtf -u cufflinks_out/$sample tophat_out/$sample/accepted_hits.bam" >> $sample.$
+  echo "tophat2 -p 11 -G $GTF -o tophat_out/$sample $REFERENCE $sample.fa" > $sample.sh
+  echo "cufflinks -p 11 -o -g $GTF -u cufflinks_out/$sample tophat_out/$sample/accepted_hits.bam" >> $sample.$
   echo "cufflinks_out/$sample/transcripts.gtf" >> assemblies.txt
   qsub -cwd $sample.sh
   rm $sample.sh
