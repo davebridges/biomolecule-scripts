@@ -23,7 +23,7 @@ do
   #this uses multiple processors (-p 11) and to first map to known sequences (-G) before matching other sequences
   echo "tophat2 -p 11 -G $GTF -o tophat_out/$sample $REFERENCE $sample.fa" > $sample.sh
   #The options are to use multiple cores (-p 11), to do a soft RABT assembly (-g) and to specify the output directory (-o)
-  echo "cufflinks -p 11 -u -g $GTF -o cufflinks_out/$sample tophat_out/$sample/accepted_hits.bam" >> $sample.$
+  echo "cufflinks -p 11 -u -g $GTF -o cufflinks_out/$sample tophat_out/$sample/accepted_hits.bam" >> $sample.sh
   echo "cufflinks_out/$sample/transcripts.gtf" >> assemblies.txt
   qsub -cwd $sample.sh
   rm $sample.sh
