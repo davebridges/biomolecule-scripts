@@ -15,4 +15,4 @@ The genome assembly represented here corresponds to GenBank Assembly ID GCA_0000
 
 Script Order
 ===========
-ran cushing.sh
+ran tophat_cufflinks.sh
