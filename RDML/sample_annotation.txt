@@ -1,0 +1,1 @@
+id	type	documentation	quantity	interRunCalibrator	calibrator	description	dnaseTreatment	enzyme	primingMethod	thermConditions	rnaQuantity	dnaQuantity	rnaQualityMethod	dnaQualityMethod	rnaQualtity	dnaQualtity	xref

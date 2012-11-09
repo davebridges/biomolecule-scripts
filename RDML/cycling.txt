@@ -1,0 +1,1 @@
+id	experimenter	step1	step2	step3	step4	step5PCR10350	ID0001	normal(temperature(95);duration(600))	normal(temperature(95);duration(15))	normal(temperature(60);duration(60))	loop(goto(3);repeat(40))	gradient(temperature(60-94);duration(85))

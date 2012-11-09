@@ -1,0 +1,18 @@
+Software Versions Used
+======================
+* Tophat 2.0.5
+* Bowtie 2.0.0-beta7
+* Cufflinks 2.02
+* Samtools 0.1.18
+
+Reference Genome
+================
+Used Human Ensembl GRCh37.69 from Ensembl, the GTF file was also downloaded from Ensembl for that version.
+
+The genome sequence was the unmasked toplevel sequence (no patches)
+
+The genome assembly represented here corresponds to GenBank Assembly ID GCA_000001405.9
+
+Script Order
+===========
+ran tophat_cufflinks.sh
