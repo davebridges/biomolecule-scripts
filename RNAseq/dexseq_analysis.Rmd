@@ -1,0 +1,95 @@
+Analysis of IKBKE ASO RNAseq Study by DEXSeq
+============================================
+
+
+Exon Analysis
+-------------
+To analyse the differential expression at the exon level, DEXseq was used.  First a counts table was generated based on the exon sizes from Ensembl.  This was done previously using the counts_table.Rmd script.
+
+Running DEXSeq
+##############
+
+```{r dexseq-analysis, echo=TRUE}
+exons <- load("exons.Robject")
+exon.counts <- read.csv("exon_counts_table.csv", row.names="X")
+require(DEXSeq)
+require(biomaRt)
+
+#will have to figure out what transcripts will equal and what exonIntervals will equal
+conds <- as.factor(c('Ctl','Ctl','Ctl','Ctl','Ctl','IKK','IKK','IKK','IKK','IKK'))
+#assemble the counts dataset
+
+#prepare exonIntervals by requesting data from biomart, this is for the current mouse assembly from ensembl
+ensembl <- useMart("ensembl",dataset = 'mmusculus_gene_ensembl')
+exonInfo <- getBM(attributes=c('ensembl_exon_id', 'ensembl_transcript_id', 'ensembl_gene_id', 'exon_chrom_start', 'exon_chrom_end', 'strand', 'chromosome_name', 'external_gene_id'), 
+                  values = 'ensembl_exon_id',
+                  mart=ensembl)
+#remove duplicated exon_id values (because an exon can be part of several transcripts)
+exonInfoUnique <- exonInfo[!duplicated(exonInfo$ensembl_exon_id),] 
+#reorder data frame based on counts table
+exonInfoUnique <- exonInfoUnique[order(match(exonInfoUnique$ensembl_exon_id,rownames(exon.counts))),]
+#rename columns for DEXseq
+colnames(exonInfoUnique) <- c("ensembl_exon_id", "ensembl_transcript_id", "ensembl_gene_id" , "start", "end", "strand", "chr", "gene_name")
+
+#prepare transcrips by reshaping exonInfo and pasting ensembl_transcript_id values together for each ensembl_exon_id
+require(plyr)
+transcriptInfo <- ddply(exonInfo, "ensembl_exon_id", 
+                        summarize, 
+                        transcipts = paste(ensembl_transcript_id, collapse = ";"),
+                        genes = paste(external_gene_id, collapse = ";"))
+
+#reorder transcript info based on counts table
+#transcriptInfo <- transcriptInfo[order(match(transcriptInfo$ensembl_exon_id,rownames(exon.counts))),]
+
+#generage a new counts data set
+dexseq.cds <- newExonCountSet(exon.counts, 
+                       design = conds, 
+                       geneIDs = exonInfoUnique$gene_name, 
+                       exonIDs = exonInfoUnique$ensembl_exon_id,
+                       exonIntervals = exonInfoUnique[,c("chr", "start", "end", "strand")] ,
+                       transcripts = transcriptInfo$transcripts)
+#calculates the sizeFactor(cds) which is the sample normalization value
+dexseq.cds <- estimateSizeFactors(dexseq.cds)
+#calculates the dispersions for the counts
+dexseq.cds <- estimateDispersions(dexseq.cds, nCores=3)
+dexseq.cds <- fitDispersionFunction(dexseq.cds)
+#plot dispersions
+meanvalues <- rowMeans(counts(dexseq.cds))
+plot(meanvalues, fData(dexseq.cds)$dispBeforeSharing, log = "xy", main = "mean vs CR dispersion")
+
+#test a particular gene for differential expression
+#For Ikbke
+testGeneForDEU(dexseq.cds, "Ikbke")
+#For Tbk1
+testGeneForDEU(dexseq.cds, "Tbk1")
+
+#plot for Ikbke
+plotDEXSeq(dexseq.cds, "Ikbke", cex.axis = 1.2, cex = 1.3, lwd = 2, legend = TRUE, displayTranscripts=TRUE)
+plotDEXSeq(dexseq.cds, "Ikbke", cex.axis = 1.2, cex = 1.3, lwd = 2, legend = TRUE, expression = FALSE, norCounts = TRUE)
+plotDEXSeq(dexseq.cds, "Ikbke", cex.axis = 1.2, cex = 1.3, lwd = 2, legend = TRUE, expression = FALSE, splicing = TRUE)
+plotDEXSeq(dexseq.cds, "Ikbke", cex.axis = 1.2, cex = 1.3, lwd = 2, legend = TRUE, expression = TRUE, splicing = TRUE)
+
+#plots for Tbk1
+plotDEXSeq(dexseq.cds, "Tbk1", cex.axis = 1.2, cex = 1.3, lwd = 2, legend = TRUE, displayTranscripts=TRUE)
+plotDEXSeq(dexseq.cds, "Tbk1", cex.axis = 1.2, cex = 1.3, lwd = 2, legend = TRUE, expression = FALSE, norCounts = TRUE)
+plotDEXSeq(dexseq.cds, "Tbk1", cex.axis = 1.2, cex = 1.3, lwd = 2, legend = TRUE, expression = FALSE, splicing = TRUE)
+plotDEXSeq(dexseq.cds, "Tbk1", cex.axis = 1.2, cex = 1.3, lwd = 2, legend = TRUE, expression = TRUE, splicing = TRUE)
+
+dexseq.cds <- testForDEU(dexseq.cds, nCores=3)
+dexseq.cds <- estimatelog2FoldChanges(dexseq.cds, nCores=3)
+results <- DEUresultTable(dexseq.cds)
+save(dexseq.cds, file="DEXseq_cds.Robject")
+table(results$padjust < 0.05)
+write.csv(results, file='DEXresults.csv')
+library("hwriter")
+DEXSeqHTML(cds, FDR = 0.05, color = c("#FF000080", "#0000FF80"))
+```
+
+Session Information
+-------------------
+
+For the R session, the package versions were:
+
+```{r}
+sessionInfo()
+```
