@@ -18,3 +18,24 @@ Generation of Alignments
 
 * This will generate two new directories, *tophat_out* and *cufflinks_out* as well as an *assembly.txt* file for use with cuffmerge
 * Each alignment will be in the *accepted_hits.bam* file in the *tophat_out/Sample_XXXXX* directory.
+
+Analysis of Aligned Data
+------------------------
+
+Generally we use three anlyses for RNAseq data, two at the gene level (DESeq and Cufflinks) and one at the exon level (DEXseq).
+All of these analyses files are provided in RMarkdown format, which can be edited within RStudio and run to generate an html output.  They can also be run within R directly by pasting in the lines between the code blocks (denoted with ```).
+
+Generation of a Counts Table
+""""""""""""""""""""""""""""
+
+For DESeq and DEXseq, a counts table needs to be generated.  To generate the counts table, using R run the Rmarkdown script *counts_table.Rmd*.  The script currently aligns reads to the latest ensemble assembly, downloaded from biomart and this should be set to whatever you used for your tophat alignment.  It is possible to use archived (older) alignments, see the biomaRt documentation.  This script will generate two counts tables:
+
+ * transcript_counts_table.csv
+ * exon_counts_table.csv
+
+Running DEXseq
+""""""""""""""
+
+DEXseq analysis is done using the scrpipt *dexseq_analysis.Rmd*.  That script will run the statistics for all the exons in yoru dataset.  It is important that you generate your exon data frame using the same assembly used to generate your counts table, and to generate your alignments.
+
+You will also need to modify the gene-specific analyses depending on what you want to look at.
