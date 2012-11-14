@@ -1,5 +1,5 @@
-Analysis of IKBKE ASO RNAseq Study by DEXSeq
-============================================
+Analysis of RNAseq Study by DEXSeq
+==================================
 
 
 Exon Analysis
@@ -16,7 +16,7 @@ require(DEXSeq)
 require(biomaRt)
 
 #will have to figure out what transcripts will equal and what exonIntervals will equal
-conds <- as.factor(c('Ctl','Ctl','Ctl','Ctl','Ctl','IKK','IKK','IKK','IKK','IKK'))
+conds <- as.factor(c('Ctl','Ctl','Ctl','Ctl','Ctl','Treatment','Treatment','Treatment','Treatment','Treatment'))
 #assemble the counts dataset
 
 #prepare exonIntervals by requesting data from biomart, this is for the current mouse assembly from ensembl
