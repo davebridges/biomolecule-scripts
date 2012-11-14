@@ -1,0 +1,114 @@
+Analysis of IKBKE ASO RNAseq Study
+==================================
+
+Background and Sample Preparation
+---------------------------------
+
+These mice were injected with control or TBK and IKBKE ASO's for eight days.  Mice were sacrificed after **???h** fasting then livers were disected.  RNA was prepared from tissue and then converted into cDNA libraries by the University of Michigan DNA Sequencing Core.  Samples were run on two lanes.  The sequences were extracted from tar.gz format with the commands from within the **/home/GROUPS/ginsburglab** folder:
+
+Sequence Alignment and Transcript Assembly
+------------------------------------------
+Bowtie2 was used to align these samples to the **ENSEMBL_M38** reference genome with a gtf file from release **69**.  
+
+Transcript Analysis
+-------------------
+To analyse differential expression at the gene level, DESeq and Cufflinks were used.  
+
+Gene Counts Table
+#################
+
+First databases of exons and transcripts are generated from the Ensembl genome assembly.  The current biomart release of ensembl is M38.69
+
+```{r gene-counts-setup, echo=TRUE}
+require(GenomicFeatures)
+require(biomaRt)
+#make a database of transcripts from the ensembl assembly
+#first get the current release 69 from ensembl
+txdb <- makeTranscriptDbFromBiomart(biomart="ensembl",dataset = 'mmusculus_gene_ensembl')
+#make exon and transcript annotation objects
+save(txdb, file="txdb.Robject")
+exons <- exons(txdb, columns=c('gene_id', 'tx_id', 'tx_name', 'tx_chrom', 'tx_strand', 'exon_id', 'exon_name', 'cds_id', 'cds_name', 'cds_chrom', 'cds_strand', 'exon_rank'))
+save(exons, file="exons.Robject")
+transcripts <- transcripts(txdb, columns=c('gene_id', 'tx_id', 'tx_name', 'exon_id', 'exon_name', 'exon_chrom', 'exon_strand', 'cds_id', 'cds_name', 'cds_chrom', 'cds_strand', 'exon_rank'))
+save(transcripts, file="transcripts.Robject")
+```
+
+Next, each accepted_hits.bam file is read, and overlaps are counted relative to these exon and transcript databases.
+
+```{r transcript-counts, echo=TRUE}
+working_directory = "/data3/davebrid/RNAseq/ikk_aso/"
+setwd(working_directory)
+require(GenomicRanges)
+require(Rsamtools)
+
+#set list of sample ids as a vector
+sample_ids = seq(12849,12858)
+
+#this forloop iterates over the sample_ids and generates exon and transcript counts for each sample_id
+for(sample_id in sample_ids) {
+  #read alignment
+  align <- readBamGappedAlignments(sprintf("tophat_out/Sample_%s/accepted_hits.bam", sample_id))
+  #count the overlapping reads for the transcripts
+  transcript.counts <- countOverlaps(transcripts, align)
+  #reassign to a specific transcript.counts object.
+  assign(sprintf("transcript.counts.%s", sample_id), transcript.counts)
+  remove(transcript.counts)
+  #count the overlapping reads for the exons
+  exon.counts <- countOverlaps(exons, align)
+  #reassign to a specific transcript.counts object.
+  assign(sprintf("exon.counts.%s", sample_id), exon.counts)
+  #remove the align, transcript.counts and exon.counts objects for the next loop
+  remove(align)
+  remove(transcript.counts)
+  remove(exon.counts)
+  }
+
+#make transcript counts table
+transcriptCountsTable <- data.frame('s12849'=transcript.counts.12849, 
+                              's12850'=transcript.counts.12850,
+                              's12851'=transcript.counts.12851,
+                              's12852'=transcript.counts.12852,
+                              's12853'=transcript.counts.12853,
+                              's12854'=transcript.counts.12854,
+                              's12855'=transcript.counts.12855,
+                              's12856'=transcript.counts.12856,
+                              's12857'=transcript.counts.12857,
+                              's12858'=transcript.counts.12858,
+                               row.names = as.vector(unlist(elementMetadata(transcripts)['tx_name'])))
+summary(transcriptCountsTable)
+
+#make exon counts table
+exonCountsTable <- data.frame('s12849'=exon.counts.12849, 
+                              's12850'=exon.counts.12850,
+                              's12851'=exon.counts.12851,
+                              's12852'=exon.counts.12852,
+                              's12853'=exon.counts.12853,
+                              's12854'=exon.counts.12854,
+                              's12855'=exon.counts.12855,
+                              's12856'=exon.counts.12856,
+                              's12857'=exon.counts.12857,
+                              's12858'=exon.counts.12858,
+                              row.names = as.vector(unlist(elementMetadata(exons)['exon_name'])))
+summary(exonCountsTable)
+
+#write these two counts tables to csv files.
+write.csv(transcriptCountsTable, "transcript_counts_table.csv")
+write.csv(exonCountsTable, "exon_counts_table.csv")
+```
+
+Software Used
+-------------
+
+Sequencing runs were uploaded to the University of Michigan Molecular and Behavioral Neuroscience Institute Cluster.  The following software versions were used for alignment:
+
+Software  | Version
+----------|---------
+samtools  | 0.1.18 (r982:295)
+bowtie    | 2.0.0-beta7
+tophat    | 2.0.4
+cufflinks | 2.0.2
+
+For the R session, the package versions were:
+```{r}
+sessionInfo()
+```
