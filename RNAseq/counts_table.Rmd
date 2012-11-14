@@ -21,6 +21,8 @@ First databases of exons and transcripts are generated from the Ensembl genome a
 ```{r gene-counts-setup, echo=TRUE}
 require(GenomicFeatures)
 require(biomaRt)
+working_directory = "/data3/davebrid/RNAseq/"
+setwd(working_directory)
 #make a database of transcripts from the ensembl assembly
 #first get the current release 69 from ensembl
 txdb <- makeTranscriptDbFromBiomart(biomart="ensembl",dataset = 'mmusculus_gene_ensembl')
