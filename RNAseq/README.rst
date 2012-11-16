@@ -28,10 +28,17 @@ All of these analyses files are provided in RMarkdown format, which can be edite
 Generation of a Counts Table
 """"""""""""""""""""""""""""
 
-For DESeq and DEXseq, a counts table needs to be generated.  To generate the counts table, using R run the Rmarkdown script **counts_table.Rmd**.  The script currently aligns reads to the latest ensemble assembly, downloaded from biomart and this should be set to whatever you used for your tophat alignment.  It is possible to use archived (older) alignments, see the biomaRt documentation.  This script will generate two counts tables:
+For DESeq and DEXseq, a counts table needs to be generated.  Before running this Rmarkdown script **counts_table.Rmd**, you will need to modify the script as follows:
 
- * transcript_counts_table.csv
- * exon_counts_table.csv
+1. Move all of your alignments in bam format into a directory marked tophat_out (relative to where the script is).  Alternatively, change the appropriate line on the script.
+2. Modify the *working_directory* parameter to where you are going to run the script.
+3. Change the sample_ids line to the ids from your alignments.  The script will loop over the sample_id vector.
+4. Set the txdb to use whichever genome assembly used for your alignments.  It is currently set to use the latest ensembl assembly.  It is possible to use archived (older) alignments, see the biomaRt documentation.
+
+This script will generate two counts tables for further analysis:
+
+* transcript_counts_table.csv
+* exon_counts_table.csv
 
 Running DEXseq
 """"""""""""""
