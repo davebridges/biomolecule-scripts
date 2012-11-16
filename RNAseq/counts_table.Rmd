@@ -45,6 +45,11 @@ require(Rsamtools)
 #set list of sample ids as a vector
 sample_ids = seq(12849,12858)
 
+transcript.countsTable <- data.frame(
+  row.names = as.vector(unlist(elementMetadata(transcripts)['tx_name'])))
+exon.countsTable <- data.frame(
+  row.names = as.vector(unlist(elementMetadata(exons)['exon_name'])))
+
 #this forloop iterates over the sample_ids and generates exon and transcript counts for each sample_id
 for(sample_id in sample_ids) {
   #read alignment
@@ -53,43 +58,22 @@ for(sample_id in sample_ids) {
   transcript.counts <- countOverlaps(transcripts, align)
   #reassign to a specific transcript.counts object.
   assign(sprintf("transcript.counts.%s", sample_id), transcript.counts)
+  #add this column to the countsTable
+  transcript.countsTable <- cbind(transcript.countsTable,transcript.counts)
   remove(transcript.counts)
   #count the overlapping reads for the exons
   exon.counts <- countOverlaps(exons, align)
   #reassign to a specific transcript.counts object.
   assign(sprintf("exon.counts.%s", sample_id), exon.counts)
+  #add this column to the countsTable
+  exon.countsTable <- cbind(exon.countsTable, exon.counts)  
   #remove the align, transcript.counts and exon.counts objects for the next loop
   remove(align)
   remove(transcript.counts)
   remove(exon.counts)
   }
 
-#make transcript counts table
-transcriptCountsTable <- data.frame('s12849'=transcript.counts.12849, 
-                              's12850'=transcript.counts.12850,
-                              's12851'=transcript.counts.12851,
-                              's12852'=transcript.counts.12852,
-                              's12853'=transcript.counts.12853,
-                              's12854'=transcript.counts.12854,
-                              's12855'=transcript.counts.12855,
-                              's12856'=transcript.counts.12856,
-                              's12857'=transcript.counts.12857,
-                              's12858'=transcript.counts.12858,
-                               row.names = as.vector(unlist(elementMetadata(transcripts)['tx_name'])))
 summary(transcriptCountsTable)
-
-#make exon counts table
-exonCountsTable <- data.frame('s12849'=exon.counts.12849, 
-                              's12850'=exon.counts.12850,
-                              's12851'=exon.counts.12851,
-                              's12852'=exon.counts.12852,
-                              's12853'=exon.counts.12853,
-                              's12854'=exon.counts.12854,
-                              's12855'=exon.counts.12855,
-                              's12856'=exon.counts.12856,
-                              's12857'=exon.counts.12857,
-                              's12858'=exon.counts.12858,
-                              row.names = as.vector(unlist(elementMetadata(exons)['exon_name'])))
 summary(exonCountsTable)
 
 #write these two counts tables to csv files.
@@ -97,17 +81,8 @@ write.csv(transcriptCountsTable, "transcript_counts_table.csv")
 write.csv(exonCountsTable, "exon_counts_table.csv")
 ```
 
-Software Used
--------------
-
-Sequencing runs were uploaded to the University of Michigan Molecular and Behavioral Neuroscience Institute Cluster.  The following software versions were used for alignment:
-
-Software  | Version
-----------|---------
-samtools  | 0.1.18 (r982:295)
-bowtie    | 2.0.0-beta7
-tophat    | 2.0.4
-cufflinks | 2.0.2
+Session Information
+-------------------
 
 For the R session, the package versions were:
 ```{r}
