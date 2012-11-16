@@ -1,0 +1,36 @@
+DESeq Analysis
+==============
+
+The counts tables were generated previously using the **counts_table.Rmd** script.
+
+```{r loading-data}
+working_directory <- "/data3/davebrid/RNAseq/cushing"
+setwd(working_directory)
+transcript.counts <- read.csv("transcript_counts_table.csv", row.names="X")
+#set the conditions
+conditions <- as.factor(c('Control','Control','Control','Control','Control','Treatment','Treatment','Treatment','Treatment','Treatment'))
+
+library( "DESeq" )
+cds = newCountDataSet( transcript.counts, conditions )
+```
+
+```{r deseq-analysis}
+cds <- estimateSizeFactors(cds)
+sizeFactors(cds)
+cds <- estimateDispersions( cds )
+plotDispEsts(cds)
+
+results = nbinomTest( cds, "Control", "Treatment" )
+table(results$padj < 0.05)
+plotMA(results)
+write.csv(results, "deseq_results.csv")
+```
+
+Session Information
+-------------------
+
+For the R session, the package versions were:
+```{r}
+sessionInfo()
+```
+
