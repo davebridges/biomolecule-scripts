@@ -40,6 +40,17 @@ This script will generate two counts tables for further analysis:
 * transcript_counts_table.csv
 * exon_counts_table.csv
 
+Running DESeq
+"""""""""""""
+
+DESeq analysis is done using the script **deseq_analysis.Rmd**.  To run this script you will have to modify the following:
+
+* working_directory: set this to the directory where the transcript_counts_table.csv file is located. 
+* conditions: set this to the groups being analysed.
+* results: set the comparason names
+
+This script is set up to analyse two groups, control and treated.  The script will normalize and analyse the data and save it to a file named **deseq_results.csv**.
+
 Running DEXseq
 """"""""""""""
 
