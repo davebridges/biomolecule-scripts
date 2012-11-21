@@ -78,7 +78,6 @@ plotDEXSeq(dexseq.cds, "Tbk1", cex.axis = 1.2, cex = 1.3, lwd = 2, legend = TRUE
 plotDEXSeq(dexseq.cds, "Tbk1", cex.axis = 1.2, cex = 1.3, lwd = 2, legend = TRUE, expression = TRUE, splicing = TRUE)
 
 results <- DEUresultTable(dexseq.cds)
-save(dexseq.cds, file="DEXseq_cds.Robject")
 table(results$padjust < 0.05)
 write.csv(results, file='DEXresults.csv')
 library("hwriter")
