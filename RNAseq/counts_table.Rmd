@@ -37,8 +37,6 @@ save(transcripts, file="transcripts.Robject")
 Next, each accepted_hits.bam file is read, and overlaps are counted relative to these exon and transcript databases.
 
 ```{r transcript-counts, echo=TRUE}
-working_directory = "/data3/davebrid/RNAseq/ikk_aso/"
-setwd(working_directory)
 require(GenomicRanges)
 require(Rsamtools)
 
