@@ -10,6 +10,10 @@ Preparation
 Generation of Alignments
 ------------------------
 
+* From the directory where your FASTQ files are, get the updated **tophat_cufflinks.sh** script using wget::
+
+     wget https://raw.github.com/davebridges/biomolecule-scripts/master/RNAseq/tophat_cufflinks.sh
+
 * Ammend the SAMPLE_README file with the software versions and reference genomes and reference assembly files.  Save this in your working directory as  README
 * To generate the alignments edit the script **tophat_cufflinks.sh** with the following information: 
 
