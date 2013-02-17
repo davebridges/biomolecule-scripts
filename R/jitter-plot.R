@@ -9,7 +9,8 @@ axis(side=1, at=1:4, labels=levels(MovieData$rating))
 #calculate means
 means <- tapply(MovieData$score,MovieData$rating, mean)
 #add axis means
-segments(0.75, means[1], 1.25, means[1], col=palette()[1])
-segments(1.75, means[2], 2.25, means[2], col=palette()[2])
-segments(2.75, means[3], 3.25, means[3], col=palette()[3])
-segments(3.75, means[4], 4.25, means[4], col=palette()[4])
+scaling = length(levels(MovieData$rating))
+scaling.values <- seq(1, scaling, by=1)
+scaling.values.upper <- scaling.values+1/scaling
+scaling.values.lower <- scaling.values-1/scaling
+for (i in scaling.values) segments(scaling.values.lower[i], means[i], scaling.values.upper[i], means[i], col=palette()[i])
