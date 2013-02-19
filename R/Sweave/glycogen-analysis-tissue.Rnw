@@ -33,7 +33,9 @@ summary(std_fit)
 
 <<label=std-curve, include=FALSE, echo=FALSE>>=
 plot(Glucose~A505, data=std_curve,
-     ylab="Glucose (ug)")
+     ylab="Glucose (ug)",
+     ylim=c(0,max(std_curve$Glucose)),
+     xlim=c(0,max(std_curve$A505)))     )
 abline(std_fit)
 @
 
