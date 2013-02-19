@@ -12,16 +12,18 @@
 \date{The Date}
 \maketitle
 
-<<data-input, echo=TRUE>>=
-setwd('some location')
+<<data-input, echo=FALSE>>=
+working_directory <- 'some location'
+setwd(working_directory)
 data_file <- "raw_glycogen_data.csv" #columns include Volume, Weight, A505 and Treatment or Genotype
 data <- read.csv(data_file)
 #std_curve_file <- "std_curve.csv" #columns Glucose, A505
 #std_curve <- read.csv(std_curve_file)
 #uncomment the previous two lines and comment the next two if entering std curve data from a file
 std_curve <- data.frame(Glucose = c(0,0.2,0.4,0.6,0.8,1.0), A505=c(0,140,269,360,471,561)) 
-
 @
+
+The data is saved in \Sexpr{working_directory}.
 
 <<std-curve-analysis, echo=TRUE>>=
 glucose.mwt <- 180.15588 #g/mol not used unless wanting to convert to molar
