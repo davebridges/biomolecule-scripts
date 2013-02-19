@@ -72,10 +72,12 @@ require(reshape)
 summary <- as.matrix(cast(calculated.data, ~Treatment, value="Glycogen", fun.aggregate=mean))
 se <- function(x) sd(x, na.rm=T)/sqrt(length(x))
 error.se <- as.matrix(cast(calculated.data, ~Treatment, value="Glycogen", fun.aggregate=se))
+summary.table <- rbind(Mean=summary, SE=error.se)
+rownames(summary.table) <- c("Mean", "Standard Error")
 @
 
 <<label=summary-tables,echo=FALSE,results=tex>>=
-print(xtable(rbind(Mean=summary, SE=error.se), caption = "Summarized Data", label = "tab:two"))
+print(xtable(summary.table, caption = "Summarized Data", label = "tab:summary"))
 @
 
 <<label=barplot, include=FALSE, echo=FALSE>>=
@@ -89,6 +91,29 @@ superpose.eb <- function (x, y, ebl, ebu = ebl, length = 0.08, ...)
 superpose.eb(plot, summary, error.se)
 @
 
+<<label=boxplot, include=FALSE, echo=FALSE>>=
+plot <- boxplot(calculated.data$Glycogen~calculated.data$Treatment,
+        ylab="Glycogen Levels (ug/g)",
+        ylim = c(0,max(calculated.data$Glycogen)))
+@
+
+<<label=dotplot, include=FALSE, echo=FALSE>>=
+plot(jitter(as.numeric(calculated.data$Treatment)), calculated.data$Glycogen, 
+     pch=19, xaxt="n",
+     ylab="Glycogen Levels (ug/g)",
+     xlab="",
+     ylim=c(0,max(calculated.data$Glycogen)))
+axis(side=1, at=1:length(levels(calculated.data$Treatment)), labels=levels(calculated.data$Treatment))
+
+#calculate means
+means <- tapply(calculated.data$Glycogen,calculated.data$Treatment, mean)
+#add axis means
+scaling = length(levels(calculated.data$Treatment))
+scaling.values <- seq(1, scaling, by=1)
+scaling.values.upper <- scaling.values+1/scaling
+scaling.values.lower <- scaling.values-1/scaling
+for (i in scaling.values) segments(scaling.values.lower[i], means[i], scaling.values.upper[i], means[i])
+@
 
 \begin{figure}
 \begin{center}
@@ -97,15 +122,8 @@ superpose.eb(plot, summary, error.se)
 @
 \end{center}
 \caption{Summary of Glycogen Levels.}
-\label{fig:two}
+\label{fig:barplot}
 \end{figure}
-
-<<label=boxplot, include=FALSE, echo=FALSE>>=
-plot <- boxplot(calculated.data$Glycogen~calculated.data$Treatment,
-        ylab="Glycogen Levels (ug/g)",
-        ylim = c(0,max(calculated.data$Glycogen)))
-@
-
 
 \begin{figure}
 \begin{center}
@@ -114,7 +132,17 @@ plot <- boxplot(calculated.data$Glycogen~calculated.data$Treatment,
 @
 \end{center}
 \caption{Summary of Glycogen Levels.}
-\label{fig:three}
+\label{fig:boxplot}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+<<label=dotplot,fig=TRUE,echo=FALSE>>=
+<<dotplot>>
+@
+\end{center}
+\caption{Summary of Glycogen Levels.}
+\label{fig:dotplot}
 \end{figure}
 
 \section*{Session Information}
