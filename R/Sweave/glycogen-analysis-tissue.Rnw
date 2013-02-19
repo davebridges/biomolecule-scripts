@@ -76,14 +76,7 @@ error.se <- error.sd/sqrt(5)
 error.se <- error.se[,c(2,1)]
 @
 
-<<label=std-curve, include=FALSE, echo=FALSE>>=
-plot(Glucose~A505, data=std_curve,
-     ylab="Glucose (ug)")
-abline(std_fit)
-@
-
 <<label=summary-tables,echo=FALSE,results=tex>>=
-require(xtable)
 print(xtable(rbind(Mean=summary, SE=error.se), caption = "Summarized Data", label = "tab:two"))
 @
 
