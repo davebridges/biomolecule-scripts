@@ -67,13 +67,11 @@ require(xtable)
 print(xtable(calculated.data[order(calculated.data$Treatment),], caption = "Calculated Data", label = "tab:one"), include.rownames=F)
 @
 
-<<data-summary, echo=TRUE>>=
+<<data-summary, echo=FALSE>>=
 require(reshape)
 summary <- as.matrix(cast(calculated.data, ~Treatment, value="Glycogen", fun.aggregate=mean))
-summary <- summary[,c(2,1)]
-error.sd <- as.matrix(cast(calculated.data, ~Treatment, value="Glycogen", fun.aggregate=sd))
-error.se <- error.sd/sqrt(5)
-error.se <- error.se[,c(2,1)]
+se <- function(x) sd(x, na.rm=T)/sqrt(length(x))
+error.se <- as.matrix(cast(calculated.data, ~Treatment, value="Glycogen", fun.aggregate=se))
 @
 
 <<label=summary-tables,echo=FALSE,results=tex>>=
