@@ -71,12 +71,12 @@ for(sample_id in sample_ids) {
   remove(exon.counts)
   }
 
-summary(transcriptCountsTable)
-summary(exonCountsTable)
+summary(transcript.countsTable)
+summary(exon.countsTable)
 
 #write these two counts tables to csv files.
-write.csv(transcriptCountsTable, "transcript_counts_table.csv")
-write.csv(exonCountsTable, "exon_counts_table.csv")
+write.csv(transcript.countsTable, "transcript_counts_table.csv")
+write.csv(exon.countsTable, "exon_counts_table.csv")
 ```
 
 Session Information
