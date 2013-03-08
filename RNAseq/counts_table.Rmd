@@ -67,7 +67,6 @@ for(sample_id in sample_ids) {
   exon.countsTable <- cbind(exon.countsTable, exon.counts)  
   #remove the align, transcript.counts and exon.counts objects for the next loop
   remove(align)
-  remove(transcript.counts)
   remove(exon.counts)
   }
 
