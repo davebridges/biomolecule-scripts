@@ -4,7 +4,7 @@
 #rownames will be corresponding to the objects being correlated
 
 
-fit <- lm(t(sample_matrix) ~ igf_sample_vector) 
+fit <- lm(t(sample_matrix) ~ sample_vector) 
 
 #presumes a linear model, allowing for an intercept
 #in summary.data rsq is the adjusted r-squared
