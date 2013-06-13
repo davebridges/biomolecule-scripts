@@ -1,0 +1,190 @@
+\documentclass{article}
+
+\usepackage{fullpage}
+\usepackage[colorlinks=true]{hyperref}
+\usepackage[tableposition=top]{caption}
+\usepackage[utf8]{inputenc}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\title{Analysis of Triglycerides}
+\author{Enter the Authors Here}
+\date{Enter the Date}
+\maketitle
+
+<<data-input, echo=FALSE>>=
+#this scr
+#this is how many uL were measured in the assay
+assay.volume <- 5 #uL
+#this accounts for the resuspension volume
+resuspension.volume <- 50 #uL
+#this is the blank (5 uL of resuspension buffer)
+blank_value <- 0.058
+working_directory <- 'location of this script and the data_file'
+setwd(working_directory)
+data_file <- "raw_data.csv" #columns include Weight, A540 and Genotype
+data <- read.csv(data_file)
+
+#std_curve_file <- "std_curve.csv" #columns Glucose, A505
+#std_curve <- read.csv(std_curve_file)d
+#uncomment the previous two lines and comment the next two if entering std curve data from a file
+std_curve <- data.frame(Triglyceride = c(0,2.5,5,7.5,10,12.5),
+    A540=c(0,0.093,0.1735,0.2805,0.3495,0.384)) 
+@
+
+The data is saved in \verb+\Sexpr{working_directory}+.
+
+\section*{Standard Curve}
+
+<<std-curve-analysis, echo=FALSE>>=
+std_fit <- lm(Triglyceride~A540 -1, data=std_curve) #force through intercept
+@
+
+<<label=std-curve, include=FALSE, echo=FALSE>>=
+plot(Triglyceride~A540, data=std_curve,
+     ylab="Trioleyn (ug)",
+     ylim=c(0,max(std_curve$Triglyceride)),
+     xlim=c(0,max(std_curve$A540)),
+     pch=19)
+abline(std_fit)
+@
+
+The standard curve for this assay is in Figure \ref{fig:std_curve} and summarized in Table \ref{tab:std_fit}.  The slope is \Sexpr{round(coef(std_fit),4)} and the adjusted R squared value is \Sexpr{round(summary(std_fit)$adj.r.squared,3)}.  The values of this curve are show in Table \ref{tab:std_values}
+
+\begin{figure}
+\begin{center}
+<<label=std-curve,fig=TRUE,echo=FALSE>>=
+<<std-curve>>
+@
+\end{center}
+\caption{Standard Curve for Triglyceride Assay.}
+\label{fig:std_curve}
+\end{figure}
+
+<<data-analysis, echo=FALSE>>=
+data$Lipid <- (data$A540-blank_value)*coefficients(std_fit) #in ug/assay
+data$Total.Lipid <- data$Lipid*resuspension.volume/assay.volume*800/500 #in ug
+data$Normalized.Lipid <- data$Total.Lipid/data$Weight # in ug/mg
+calculated.data <- data.frame(Mouse = data$Sample, 
+                              Genotype = data$Genotype,
+                              Lipid = data$Normalized.Lipid,
+                              check.rows=F)
+calculated_data_filename <- 'calculated_data.csv'
+write.csv(calculated.data, calculated_data_filename)
+@
+
+The recalculated data is shown in \ref{tab:calculated-data} and saved as \verb+\Sexpr{calculated_data_filename}+.
+
+<<label=data-tables,echo=FALSE,results=tex>>=
+require(xtable)
+print(xtable(std_fit, caption="Standard Curve Statistics", label="tab:std_fit"))
+print(xtable(std_curve, caption="Standard Curve Values", label="tab:std_values"))
+print(xtable(calculated.data[order(calculated.data$Genotype),], caption = "Calculated Data", label = "tab:calculated-data"), include.rownames=F)
+@
+
+<<data-summary, echo=FALSE>>=
+require(plyr)
+se <- function(x) sd(x, na.rm=T)/sqrt(length(x))
+
+summary <- ddply(calculated.data, ~Genotype, summarize,
+                       Mean = mean(Lipid, na.rm=T),
+                       Error = se(Lipid),
+                       Number = length(Lipid))
+@
+
+<<label=summary-tables,echo=FALSE,results=tex>>=
+print(xtable(summary, caption = "Summarized Data", label = "tab:summary"))
+@
+
+<<label=barplot, include=FALSE, echo=FALSE>>=
+require(reshape2)
+ymax <- max(summary$Mean)+max(summary$Error)
+plot <- barplot(summary$Mean,
+        ylab="Triglyceride Levels (ug/g)",
+        names.arg=summary$Genotype,
+        ylim = c(0,ymax))
+superpose.eb <- function (x, y, ebl, ebu = ebl, length = 0.08, ...)
+  arrows(x, y + ebu, x, y - ebl, angle = 90, code = 3,
+  length = length, ...)
+superpose.eb(plot,summary$Mean,summary$Error)
+@
+
+<<label=boxplot, include=FALSE, echo=FALSE>>=
+plot <- boxplot(calculated.data$Lipid~calculated.data$Genotype,
+        ylab="Triglyceride Levels (ug/g)",
+        las=2,
+        ylim = c(0,max(calculated.data$Lipid, na.rm=T)))
+@
+
+<<label=dotplot, include=FALSE, echo=FALSE>>=
+plot(jitter(as.numeric(calculated.data$Genotype)), calculated.data$Lipid, 
+     pch=19, xaxt="n",
+     ylab="Triglyceride Levels (ug/g)",
+     xlab="",
+     las=2,
+     ylim=c(0,max(calculated.data$Lipid, na.rm=T)))
+axis(side=1, at=1:length(levels(calculated.data$Genotype)), labels=levels(calculated.data$Genotype))
+
+#add axis means
+scaling = length(levels(data$Genotype))
+scaling.values <- seq(1, scaling, by=1)
+scaling.values.upper <- scaling.values+1/scaling
+scaling.values.lower <- scaling.values-1/scaling
+for (i in scaling.values) {
+  segments(scaling.values.lower[i], summary$Mean[i], scaling.values.upper[i], summary$Mean[i])
+}
+
+@
+
+\begin{figure}
+\begin{center}
+<<label=barplot,fig=TRUE,echo=FALSE>>=
+<<barplot>>
+@
+\end{center}
+\caption{Summary of Triglyceride Levels.}
+\label{fig:barplot}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+<<label=boxplot,fig=TRUE,echo=FALSE>>=
+<<boxplot>>
+@
+\end{center}
+\caption{Summary of Triglyceride Levels.}
+\label{fig:boxplot}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+<<label=dotplot,fig=TRUE,echo=FALSE>>=
+<<dotplot>>
+@
+\end{center}
+\caption{Summary of Triglyceride Levels.}
+\label{fig:dotplot}
+\end{figure}
+
+\section*{Statistics}
+
+<<statistics, echo=FALSE>>=
+#result.t.test <- t.test(Glycogen~Treatment, data=calculated.data) #for single comparason
+#test for an interaction
+anova.fit <- aov(Lipid~Genotype, data=calculated.data)
+@
+
+An ANOVA was performed on these data (see Table \ref{tab:anova}).  The p-value between genotypes is (p = \Sexpr{round(summary(anova.fit)[[1]]$`Pr(>F)`[1],4)})
+
+<<label=summary-tables,echo=FALSE,results=tex>>=
+print(xtable(summary(anova.fit), caption = "ANOVA Analysis", label = "tab:anova"))
+@
+
+\section*{Session Information}
+<<sessionInfo, results=tex, echo=F>>=
+toLatex(sessionInfo())
+@
+
+
+\end{document}
